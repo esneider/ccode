@@ -151,7 +151,7 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 {dec_constant} {
 
-        return proc_constant( INT_CONSTANT, 0, 0 );
+        return proc_constant( INT_CONSTANT, 0, NO_MODIFIER );
     }
 
 {dec_constant}{long_suffix} {
@@ -181,7 +181,7 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 {uint_constant} {
 
-        return proc_constant( UINT_CONSTANT, 0, 0 );
+        return proc_constant( UINT_CONSTANT, 0, NO_MODIFIER );
     }
 
 {uint_constant}{long_suffix} {
@@ -211,7 +211,7 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 {floating_constant} {
 
-        return proc_constant( FLOAT_CONSTANT, 0, 0 );
+        return proc_constant( FLOAT_CONSTANT, 0, NO_MODIFIER );
     }
 
 {floating_constant}{float_suffix} {
@@ -226,7 +226,7 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 '{c_char_sequence}' {
 
-        return proc_constant( CHAR_CONSTANT, 0, 0 );
+        return proc_constant( CHAR_CONSTANT, 0, NO_MODIFIER );
     }
 
 L'{c_char_sequence}' {
@@ -236,7 +236,7 @@ L'{c_char_sequence}' {
 
 "{s_char_sequence}" {
 
-        return proc_string_literal( 0, 0 );
+        return proc_string_literal( 0, NO_MODIFIER );
     }
 
 L"{s_char_sequence}" {

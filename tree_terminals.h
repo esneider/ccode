@@ -10,6 +10,7 @@ enum constant_type {
 
 enum modifiers {
 
+    NO_MODIFIER        = 0,
     UNSIGNED_MODIFIER  = 1,
     LONG_MODIFIER      = 2,
     LONG_LONG_MODIFIER = 4,
