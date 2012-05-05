@@ -12,7 +12,7 @@
  * programm encoding
 
 
- ## TIME:
+## TIME:
 
-  * 12hs (5/5/2012)
+ * 12hs (5/5/2012)
 
