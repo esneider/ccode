@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "y.tab.h"
 
 int line = 0, column = 0;
@@ -197,13 +198,11 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
         return CONSTANT;
     }
 
-
 {uint_constant}{long_long_suffix} {
 
         proc_integer_constant( false, 1, LONG_LONG_MODIFIER );
         return CONSTANT;
     }
-
 
 {uint_constant}{unsigned_suffix} {
 
@@ -211,13 +210,11 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
         return CONSTANT;
     }
 
-
 {uint_constant}({unsigned_suffix}{long_suffix}|{long_suffix}{unsigned_suffix}) {
 
         proc_integer_constant( false, 2, UNSIGNED_MODIFIER | LONG_MODIFIER );
         return CONSTANT;
     }
-
 
 {uint_constant}({unsigned_suffix}{long_long_suffix}|{long_long_suffix}{unsigned_suffix}) {
 
@@ -243,7 +240,6 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
         return CONSTANT;
     }
 
-
 '{c_char_sequence}' {
 
         proc_char_constant( 0, 0 );
@@ -253,6 +249,7 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 L'{c_char_sequence}' {
 
         proc_char_constant( 1, WIDE_CHAR_MODIFIER );
+        return CONSTANT;
     }
 
 "{s_char_sequence}" {
@@ -269,22 +266,47 @@ L"{s_char_sequence}" {
 
 %%
 
-void proc( void ) {
+static inline void move ( void ) {
 
     column += yyleng;
 }
 
-void save ( void ) {
+static void proc_keyword ( void ) {
 
-    yylval.text = malloc( yyleng + 1 );
-
-    if ( yylval.text ) {
-
-        memcpy( yylval.text, yytext, yyleng + 1 );
-    }
+    move();
 }
 
-int yywrap( void ) {
+static void proc_punctuator ( void ) {
+
+    move();
+}
+
+static void proc_identifier ( void ) {
+
+    move();
+}
+
+static void proc_integer_constant ( bool is_signed, int suffix_len, int modifiers ) {
+
+    move();
+}
+
+static void proc_floating_constant ( int suffix_len, int modifiers ) {
+
+    move();
+}
+
+static void proc_char_constant ( int prefix_len, int modifiers ) {
+
+    move();
+}
+
+static void proc_string_literal ( int prefix_len, int modifiers ) {
+
+    move();
+}
+
+int yywrap ( void ) {
 
     return 0;
 }
