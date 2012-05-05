@@ -10,3 +10,9 @@
  * syntax tree
  * type analisys
  * programm encoding
+
+
+ ## TIME:
+
+  * 12hs (5/5/2012)
+
