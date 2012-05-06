@@ -57,6 +57,7 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 %%
 
+"auto"           { return proc_keyword( AUTO      ); }
 "break"          { return proc_keyword( BREAK     ); }
 "case"           { return proc_keyword( CASE      ); }
 "char"           { return proc_keyword( CHAR      ); }
@@ -101,9 +102,9 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 "{"              { return proc_punctuator( '{'  ); }
 "}"              { return proc_punctuator( '}'  ); }
 "."              { return proc_punctuator( '.'  ); }
-"->"             { return proc_punctuator( '->' ); }
-"++"             { return proc_punctuator( '++' ); }
-"--"             { return proc_punctuator( '--' ); }
+"->"             { return proc_punctuator( POINTER ); }
+"++"             { return proc_punctuator( INCREMENT ); }
+"--"             { return proc_punctuator( DECREMENT ); }
 "&"              { return proc_punctuator( '&'  ); }
 "*"              { return proc_punctuator( '*'  ); }
 "+"              { return proc_punctuator( '+'  ); }
@@ -112,42 +113,42 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 "!"              { return proc_punctuator( '!'  ); }
 "/"              { return proc_punctuator( '/'  ); }
 "%"              { return proc_punctuator( '%'  ); }
-"<<"             { return proc_punctuator( '<<' ); }
-">>"             { return proc_punctuator( '>>' ); }
+"<<"             { return proc_punctuator( LSHIFT ); }
+">>"             { return proc_punctuator( RSHIFT ); }
 "<"              { return proc_punctuator( '<'  ); }
 ">"              { return proc_punctuator( '>'  ); }
-"<="             { return proc_punctuator( '<=' ); }
-">="             { return proc_punctuator( '>=' ); }
-"=="             { return proc_punctuator( '==' ); }
-"!="             { return proc_punctuator( '!=' ); }
+"<="             { return proc_punctuator( LESS_EQUAL ); }
+">="             { return proc_punctuator( MORE_EQUAL ); }
+"=="             { return proc_punctuator( EQUAL ); }
+"!="             { return proc_punctuator( NOT_EQUAL ); }
 "^"              { return proc_punctuator( '^'  ); }
 "|"              { return proc_punctuator( '|'  ); }
-"&&"             { return proc_punctuator( '&&' ); }
-"||"             { return proc_punctuator( '||' ); }
+"&&"             { return proc_punctuator( AND ); }
+"||"             { return proc_punctuator( OR ); }
 "?"              { return proc_punctuator( '?'  ); }
 ":"              { return proc_punctuator( ':'  ); }
 ";"              { return proc_punctuator( ';'  ); }
-"..."            { return proc_punctuator( '...' ); }
+"..."            { return proc_punctuator( ELLIPSIS ); }
 "="              { return proc_punctuator( '='  ); }
-"*="             { return proc_punctuator( '*=' ); }
-"/="             { return proc_punctuator( '/=' ); }
-"%="             { return proc_punctuator( '%=' ); }
-"+="             { return proc_punctuator( '+=' ); }
-"-="             { return proc_punctuator( '-=' ); }
-"<<="            { return proc_punctuator( '<<=' ); }
-">>="            { return proc_punctuator( '>>=' ); }
-"&="             { return proc_punctuator( '&=' ); }
-"^="             { return proc_punctuator( '^=' ); }
-"|="             { return proc_punctuator( '|=' ); }
+"*="             { return proc_punctuator( MUL_ASSIGN ); }
+"/="             { return proc_punctuator( DIV_ASSIGN ); }
+"%="             { return proc_punctuator( MOD_ASSIGN ); }
+"+="             { return proc_punctuator( ADD_ASSIGN ); }
+"-="             { return proc_punctuator( SUB_ASSIGN ); }
+"<<="            { return proc_punctuator( LSHIFT_ASSIGN ); }
+">>="            { return proc_punctuator( RSHIFT_ASSIGN ); }
+"&="             { return proc_punctuator( AND_ASSIGN ); }
+"^="             { return proc_punctuator( XOR_ASSIGN ); }
+"|="             { return proc_punctuator( OR_ASSIGN ); }
 ","              { return proc_punctuator( ','  ); }
 "#"              { return proc_punctuator( '#'  ); }
-"##"             { return proc_punctuator( '##' ); }
+"##"             { return proc_punctuator( PASTE ); }
 "<:"             { return proc_punctuator( '['  ); }
 ":>"             { return proc_punctuator( ']'  ); }
 "<%"             { return proc_punctuator( '{'  ); }
 "%>"             { return proc_punctuator( '}'  ); }
 "%:"             { return proc_punctuator( '#'  ); }
-"%:%:"           { return proc_punctuator( '##' ); }
+"%:%:"           { return proc_punctuator( PASTE ); }
 
 {identifier}     { return proc_identifier(); }
 
