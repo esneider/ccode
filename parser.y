@@ -32,6 +32,8 @@
 
 %token PARSE_ERROR
 
+%expect 1
+
 %start translation_unit
 
 %%
