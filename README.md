@@ -11,7 +11,7 @@
    * v0.2 (6/5/2012): grammar rules, no AST yet
  * syntax tree
  * type analisys
- * programm encoding
+ * program encoding
 
 
 ## TIME:

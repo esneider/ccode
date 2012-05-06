@@ -223,8 +223,7 @@ type_specifier
     | _COMPLEX
     | struct_or_union_specifier
     | enum_specifier
-    | TYPE_NAME
- /*   | typedef_name /* TODO: check why the dude uses TYPE_NAME */
+    | typedef_name
     ;
 
 struct_or_union_specifier
@@ -306,8 +305,8 @@ direct_declarator
     | direct_declarator '[' assignment_expression ']'
     | direct_declarator '[' ']'
     | direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-/*  | direct_declarator '[' STATIC assignment_expression ']'
-*/  | direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
+    | direct_declarator '[' STATIC assignment_expression ']'
+    | direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
     | direct_declarator '[' type_qualifier_list '*' ']'
     | direct_declarator '[' '*' ']'
     | direct_declarator '(' parameter_type_list ')'
@@ -361,21 +360,21 @@ abstract_declarator
 
 direct_abstract_declarator
     : '(' abstract_declarator ')'
-/*  | direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
+    | direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
     | '[' type_qualifier_list assignment_expression ']'
-*/  | direct_abstract_declarator '[' assignment_expression ']'
-/*  | direct_abstract_declarator '[' type_qualifier_list ']'
-*/  | direct_abstract_declarator '[' ']'
-/*  | '[' type_qualifier_list ']'
-*/  | '[' assignment_expression ']'
+    | direct_abstract_declarator '[' assignment_expression ']'
+    | direct_abstract_declarator '[' type_qualifier_list ']'
+    | direct_abstract_declarator '[' ']'
+    | '[' type_qualifier_list ']'
+    | '[' assignment_expression ']'
     | '[' ']'
-/*  | direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
+    | direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
     | '[' STATIC type_qualifier_list assignment_expression ']'
     | direct_abstract_declarator '[' STATIC assignment_expression ']'
     | '[' STATIC assignment_expression ']'
     | direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
     | '[' type_qualifier_list STATIC assignment_expression ']'
-*/  | direct_abstract_declarator '[' '*' ']'
+    | direct_abstract_declarator '[' '*' ']'
     | '[' '*' ']'
     | direct_abstract_declarator '(' parameter_type_list ')'
     | '(' parameter_type_list ')'
@@ -384,7 +383,8 @@ direct_abstract_declarator
     ;
 
 typedef_name
-    : IDENTIFIER
+/*  : IDENTIFIER */
+    : TYPE_NAME
     ;
 
 initializer
