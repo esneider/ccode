@@ -2,14 +2,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "y.tab.h"
+#include "tree_terminals.h"
+#include "parser.tab.h"
 
 int line = 1, column = 0;
 
 static int proc_keyword ( int keyword );
 static int proc_punctuator ( int punctuator );
 static int proc_identifier ( void );
-static int proc_integer_constant ( int type, int modifiers , int suffix_len);
+static int proc_constant ( int type, int modifiers , int suffix_len);
 static int proc_string_literal ( int modifiers, int prefix_len );
 
 %}
@@ -55,105 +56,99 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 %%
 
-"break"          { return proc_keyword('brea'); }
-"case"           { return proc_keyword('case'); }
-"char"           { return proc_keyword('char'); }
-"const"          { return proc_keyword('cons'); }
-"continue"       { return proc_keyword('cont'); }
-"default"        { return proc_keyword('defa'); }
-"do"             { return proc_keyword('do'); }
-"double"         { return proc_keyword('doub'); }
-"else"           { return proc_keyword('else'); }
-"enum"           { return proc_keyword('enum'); }
-"extern"         { return proc_keyword('exte'); }
-"float"          { return proc_keyword('floa'); }
-"for"            { return proc_keyword('for'); }
-"goto"           { return proc_keyword('goto'); }
-"if"             { return proc_keyword('if'); }
-"inline"         { return proc_keyword('inli'); }
-"int"            { return proc_keyword('int'); }
-"long"           { return proc_keyword('long'); }
-"register"       { return proc_keyword('regi'); }
-"restrict"       { return proc_keyword('rest'); }
-"return"         { return proc_keyword('retu'); }
-"short"          { return proc_keyword('shor'); }
-"signed"         { return proc_keyword('sign'); }
-"sizeof"         { return proc_keyword('size'); }
-"static"         { return proc_keyword('stat'); }
-"struct"         { return proc_keyword('stru'); }
-"switch"         { return proc_keyword('swit'); }
-"typedef"        { return proc_keyword('type'); }
-"union"          { return proc_keyword('unio'); }
-"unsigned"       { return proc_keyword('unsi'); }
-"void"           { return proc_keyword('void'); }
-"volatile"       { return proc_keyword('vola'); }
-"while"          { return proc_keyword('whil'); }
-"_Bool"          { return proc_keyword('_Boo'); }
-"_Complex"       { return proc_keyword('_Com'); }
-"_Imaginary"     { return proc_keyword('_Ima'); }
+"break"          { return proc_keyword( BREAK     ); }
+"case"           { return proc_keyword( CASE      ); }
+"char"           { return proc_keyword( CHAR      ); }
+"const"          { return proc_keyword( CONST     ); }
+"continue"       { return proc_keyword( CONTINUE  ); }
+"default"        { return proc_keyword( DEFAULT   ); }
+"do"             { return proc_keyword( DO        ); }
+"double"         { return proc_keyword( DOUBLE    ); }
+"else"           { return proc_keyword( ELSE      ); }
+"enum"           { return proc_keyword( ENUM      ); }
+"extern"         { return proc_keyword( EXTERN 	  ); }
+"float"          { return proc_keyword( FLOAT 	  ); }
+"for"            { return proc_keyword( FOR 	  ); }
+"goto"           { return proc_keyword( GOTO 	  ); }
+"if"             { return proc_keyword( IF 	      ); }
+"inline"         { return proc_keyword( INLINE 	  ); }
+"int"            { return proc_keyword( INT 	  ); }
+"long"           { return proc_keyword( LONG 	  ); }
+"register"       { return proc_keyword( REGISTER  ); }
+"restrict"       { return proc_keyword( RESTRICT  ); }
+"return"         { return proc_keyword( RETURN 	  ); }
+"short"          { return proc_keyword( SHORT 	  ); }
+"signed"         { return proc_keyword( SIGNED 	  ); }
+"sizeof"         { return proc_keyword( SIZEOF 	  ); }
+"static"         { return proc_keyword( STATIC 	  ); }
+"struct"         { return proc_keyword( STRUCT 	  ); }
+"switch"         { return proc_keyword( SWITCH 	  ); }
+"typedef"        { return proc_keyword( TYPEDEF   ); }
+"union"          { return proc_keyword( UNION 	  ); }
+"unsigned"       { return proc_keyword( UNSIGNED  ); }
+"void"           { return proc_keyword( VOID 	  ); }
+"volatile"       { return proc_keyword( VOLATILE  ); }
+"while"          { return proc_keyword( WHILE 	  ); }
+"_Bool"          { return proc_keyword( _BOOL 	  ); }
+"_Complex"       { return proc_keyword( _COMPLEX  ); }
+"_Imaginary"     { return proc_keyword( _IMAGINARY ); }
 
-"["              { return proc_punctuator('['); }
-"]"              { return proc_punctuator(']'); }
-"("              { return proc_punctuator('('); }
-")"              { return proc_punctuator(')'); }
-"{"              { return proc_punctuator('{'); }
-"}"              { return proc_punctuator('}'); }
-"."              { return proc_punctuator('.'); }
-"->"             { return proc_punctuator('->'); }
-"++"             { return proc_punctuator('++'); }
-"--"             { return proc_punctuator('--'); }
-"&"              { return proc_punctuator('&'); }
-"*"              { return proc_punctuator('*'); }
-"+"              { return proc_punctuator('+'); }
-"-"              { return proc_punctuator('-'); }
-"~"              { return proc_punctuator('~'); }
-"!"              { return proc_punctuator('!'); }
-"/"              { return proc_punctuator('/'); }
-"%"              { return proc_punctuator('%'); }
-"<<"             { return proc_punctuator('<<'); }
-">>"             { return proc_punctuator('>>'); }
-"<"              { return proc_punctuator('<'); }
-">"              { return proc_punctuator('>'); }
-"<="             { return proc_punctuator('<='); }
-">="             { return proc_punctuator('>='); }
-"=="             { return proc_punctuator('=='); }
-"!="             { return proc_punctuator('!='); }
-"^"              { return proc_punctuator('^'); }
-"|"              { return proc_punctuator('|'); }
-"&&"             { return proc_punctuator('&&'); }
-"||"             { return proc_punctuator('||'); }
-"?"              { return proc_punctuator('?'); }
-":"              { return proc_punctuator(':'); }
-";"              { return proc_punctuator(';'); }
-"..."            { return proc_punctuator('...'); }
-"="              { return proc_punctuator('='); }
-"*="             { return proc_punctuator('*='); }
-"/="             { return proc_punctuator('/='); }
-"%="             { return proc_punctuator('%='); }
-"+="             { return proc_punctuator('+='); }
-"-="             { return proc_punctuator('-='); }
-"<<="            { return proc_punctuator('<<='); }
-">>="            { return proc_punctuator('>>='); }
-"&="             { return proc_punctuator('&='); }
-"^="             { return proc_punctuator('^='); }
-"|="             { return proc_punctuator('|='); }
-","              { return proc_punctuator(','); }
-"#"              { return proc_punctuator('#'); }
-"##"             { return proc_punctuator('##'); }
-"<:"             { return proc_punctuator('['); }
-":>"             { return proc_punctuator(']'); }
-"<%"             { return proc_punctuator('{'); }
-"%>"             { return proc_punctuator('}'); }
-"%:"             { return proc_punctuator('#'); }
-"%:%:"           { return proc_punctuator('##'); }
+"["              { return proc_punctuator( '['  ); }
+"]"              { return proc_punctuator( ']'  ); }
+"("              { return proc_punctuator( '('  ); }
+")"              { return proc_punctuator( ')'  ); }
+"{"              { return proc_punctuator( '{'  ); }
+"}"              { return proc_punctuator( '}'  ); }
+"."              { return proc_punctuator( '.'  ); }
+"->"             { return proc_punctuator( '->' ); }
+"++"             { return proc_punctuator( '++' ); }
+"--"             { return proc_punctuator( '--' ); }
+"&"              { return proc_punctuator( '&'  ); }
+"*"              { return proc_punctuator( '*'  ); }
+"+"              { return proc_punctuator( '+'  ); }
+"-"              { return proc_punctuator( '-'  ); }
+"~"              { return proc_punctuator( '~'  ); }
+"!"              { return proc_punctuator( '!'  ); }
+"/"              { return proc_punctuator( '/'  ); }
+"%"              { return proc_punctuator( '%'  ); }
+"<<"             { return proc_punctuator( '<<' ); }
+">>"             { return proc_punctuator( '>>' ); }
+"<"              { return proc_punctuator( '<'  ); }
+">"              { return proc_punctuator( '>'  ); }
+"<="             { return proc_punctuator( '<=' ); }
+">="             { return proc_punctuator( '>=' ); }
+"=="             { return proc_punctuator( '==' ); }
+"!="             { return proc_punctuator( '!=' ); }
+"^"              { return proc_punctuator( '^'  ); }
+"|"              { return proc_punctuator( '|'  ); }
+"&&"             { return proc_punctuator( '&&' ); }
+"||"             { return proc_punctuator( '||' ); }
+"?"              { return proc_punctuator( '?'  ); }
+":"              { return proc_punctuator( ':'  ); }
+";"              { return proc_punctuator( ';'  ); }
+"..."            { return proc_punctuator( '...' ); }
+"="              { return proc_punctuator( '='  ); }
+"*="             { return proc_punctuator( '*=' ); }
+"/="             { return proc_punctuator( '/=' ); }
+"%="             { return proc_punctuator( '%=' ); }
+"+="             { return proc_punctuator( '+=' ); }
+"-="             { return proc_punctuator( '-=' ); }
+"<<="            { return proc_punctuator( '<<=' ); }
+">>="            { return proc_punctuator( '>>=' ); }
+"&="             { return proc_punctuator( '&=' ); }
+"^="             { return proc_punctuator( '^=' ); }
+"|="             { return proc_punctuator( '|=' ); }
+","              { return proc_punctuator( ','  ); }
+"#"              { return proc_punctuator( '#'  ); }
+"##"             { return proc_punctuator( '##' ); }
+"<:"             { return proc_punctuator( '['  ); }
+":>"             { return proc_punctuator( ']'  ); }
+"<%"             { return proc_punctuator( '{'  ); }
+"%>"             { return proc_punctuator( '}'  ); }
+"%:"             { return proc_punctuator( '#'  ); }
+"%:%:"           { return proc_punctuator( '##' ); }
 
 {identifier}     { return proc_identifier(); }
-
-[ \t\v\r\f]      { column++; }
-
-\n               { column = 0; line++; }
-
-.                { yyerror( "Parse error at line %d, column %d." ); }
 
 {dec_constant} {
 
@@ -240,15 +235,21 @@ L'{c_char_sequence}' {
         return proc_constant( CHAR_CONSTANT, WIDE_CHAR_MODIFIER, 1 );
     }
 
-"{s_char_sequence}" {
+\"{s_char_sequence}\" {
 
         return proc_string_literal( NO_MODIFIER, 0 );
     }
 
-L"{s_char_sequence}" {
+L\"{s_char_sequence}\" {
 
         return proc_string_literal( WIDE_CHAR_MODIFIER, 1 );
     }
+
+[ \t\v\r\f]      { column++; }
+
+\n               { column = 0; line++; }
+
+.                { yyerror( "Parse error at line %d, column %d." ); }
 
 %%
 
@@ -302,13 +303,12 @@ static int proc_identifier ( void ) {
     return IDENTIFIER;
 }
 
-static int proc_integer_constant ( int type, int modifiers, int suffix_len ) {
+static int proc_constant ( int type, int modifiers, int suffix_len ) {
 
     save( &(yylval.constant.token) );
 
     yylval.constant.type = type;
     yylval.constant.modifiers = modifiers;
-    yylval.constant.token.textlen -= suffix_len;
 
     move();
 
@@ -320,7 +320,6 @@ static int proc_string_literal ( int modifiers, int prefix_len ) {
     save( &(yylval.string_literal.token) );
 
     yylval.string_literal.modifiers = modifiers;
-    yylval.string_literal.token.textlen -= prefix_len;
 
     move();
 
@@ -332,11 +331,11 @@ int yywrap ( void ) {
     return 0;
 }
 
-void yyerror ( const char *str ) {
+void yyerror ( char * const str ) {
 
     fflush( stdout );
     printf( str, line, column );
     printf( "\n" );
-    yyterminate();
+    exit( 1 );
 }
 
