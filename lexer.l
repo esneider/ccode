@@ -6,6 +6,12 @@
 
 int line = 1, column = 0;
 
+static int proc_keyword ( int keyword );
+static int proc_punctuator ( int punctuator );
+static int proc_identifier ( void );
+static int proc_integer_constant ( int type, int modifiers , int suffix_len);
+static int proc_string_literal ( int modifiers, int prefix_len );
+
 %}
 
 nondigit              [_a-zA-Z]
@@ -151,97 +157,97 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 {dec_constant} {
 
-        return proc_constant( INT_CONSTANT, 0, NO_MODIFIER );
+        return proc_constant( INT_CONSTANT, NO_MODIFIER, 0 );
     }
 
 {dec_constant}{long_suffix} {
 
-        return proc_constant( INT_CONSTANT, 1, LONG_MODIFIER );
+        return proc_constant( INT_CONSTANT, LONG_MODIFIER, 1 );
     }
 
 {dec_constant}{long_long_suffix} {
 
-        return proc_constant( INT_CONSTANT, 1, LONG_LONG_MODIFIER );
+        return proc_constant( INT_CONSTANT, LONG_LONG_MODIFIER, 1 );
     }
 
 {dec_constant}{unsigned_suffix} {
 
-        return proc_constant( INT_CONSTANT, 1, UNSIGNED_MODIFIER);
+        return proc_constant( INT_CONSTANT, UNSIGNED_MODIFIER, 1 );
     }
 
 {dec_constant}({unsigned_suffix}{long_suffix}|{long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( INT_CONSTANT, 2, UNSIGNED_MODIFIER | LONG_MODIFIER);
+        return proc_constant( INT_CONSTANT, UNSIGNED_MODIFIER | LONG_MODIFIER, 2 );
     }
 
 {dec_constant}({unsigned_suffix}{long_long_suffix}|{long_long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( INT_CONSTANT, 2, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER );
+        return proc_constant( INT_CONSTANT, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER, 2 );
     }
 
 {uint_constant} {
 
-        return proc_constant( UINT_CONSTANT, 0, NO_MODIFIER );
+        return proc_constant( UINT_CONSTANT, NO_MODIFIER, 0 );
     }
 
 {uint_constant}{long_suffix} {
 
-        return proc_constant( UINT_CONSTANT, 1, LONG_MODIFIER );
+        return proc_constant( UINT_CONSTANT, LONG_MODIFIER, 1 );
     }
 
 {uint_constant}{long_long_suffix} {
 
-        return proc_constant( UINT_CONSTANT, 1, LONG_LONG_MODIFIER );
+        return proc_constant( UINT_CONSTANT, LONG_LONG_MODIFIER, 1 );
     }
 
 {uint_constant}{unsigned_suffix} {
 
-        return proc_constant( UINT_CONSTANT, 1, UNSIGNED_MODIFIER );
+        return proc_constant( UINT_CONSTANT, UNSIGNED_MODIFIER, 1 );
     }
 
 {uint_constant}({unsigned_suffix}{long_suffix}|{long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( UINT_CONSTANT, 2, UNSIGNED_MODIFIER | LONG_MODIFIER );
+        return proc_constant( UINT_CONSTANT, UNSIGNED_MODIFIER | LONG_MODIFIER, 2 );
     }
 
 {uint_constant}({unsigned_suffix}{long_long_suffix}|{long_long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( UINT_CONSTANT, 2, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER );
+        return proc_constant( UINT_CONSTANT, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER, 2 );
     }
 
 {floating_constant} {
 
-        return proc_constant( FLOAT_CONSTANT, 0, NO_MODIFIER );
+        return proc_constant( FLOAT_CONSTANT, NO_MODIFIER, 0 );
     }
 
 {floating_constant}{float_suffix} {
 
-        return proc_constant( FLOAT_CONSTANT, 1, FLOAT_MODIFIER );
+        return proc_constant( FLOAT_CONSTANT, FLOAT_MODIFIER, 1 );
     }
 
 {floating_constant}{long_suffix} {
 
-        return proc_constant( FLOAT_CONSTANT, 1, LONG_MODIFIER );
+        return proc_constant( FLOAT_CONSTANT, LONG_MODIFIER, 1 );
     }
 
 '{c_char_sequence}' {
 
-        return proc_constant( CHAR_CONSTANT, 0, NO_MODIFIER );
+        return proc_constant( CHAR_CONSTANT, NO_MODIFIER, 0 );
     }
 
 L'{c_char_sequence}' {
 
-        return proc_constant( CHAR_CONSTANT, 1, WIDE_CHAR_MODIFIER );
+        return proc_constant( CHAR_CONSTANT, WIDE_CHAR_MODIFIER, 1 );
     }
 
 "{s_char_sequence}" {
 
-        return proc_string_literal( 0, NO_MODIFIER );
+        return proc_string_literal( NO_MODIFIER, 0 );
     }
 
 L"{s_char_sequence}" {
 
-        return proc_string_literal( 1, WIDE_CHAR_MODIFIER );
+        return proc_string_literal( WIDE_CHAR_MODIFIER, 1 );
     }
 
 %%
@@ -251,7 +257,7 @@ static inline void move ( void ) {
     column += yyleng;
 }
 
-static inline void save ( struct token *token ) {
+static void save ( struct token *token ) {
 
     token->line = line;
     token->column = column;
@@ -272,6 +278,7 @@ static int proc_keyword ( int keyword ) {
     yylval.keyword.keyword = keyword;
 
     move();
+
     return keyword;
 }
 
@@ -282,6 +289,7 @@ static int proc_punctuator ( int punctuator ) {
     yylval.punctuator.punctuator = punctuator;
 
     move();
+
     return punctuator;
 }
 
@@ -290,10 +298,11 @@ static int proc_identifier ( void ) {
     save( &(yylval.identifier.token) );
 
     move();
+
     return IDENTIFIER;
 }
 
-static int proc_integer_constant ( int type, int suffix_len, int modifiers ) {
+static int proc_integer_constant ( int type, int modifiers, int suffix_len ) {
 
     save( &(yylval.constant.token) );
 
@@ -302,10 +311,11 @@ static int proc_integer_constant ( int type, int suffix_len, int modifiers ) {
     yylval.constant.token.textlen -= suffix_len;
 
     move();
+
     return CONSTANT;
 }
 
-static int proc_string_literal ( int prefix_len, int modifiers ) {
+static int proc_string_literal ( int modifiers, int prefix_len ) {
 
     save( &(yylval.string_literal.token) );
 
@@ -313,6 +323,7 @@ static int proc_string_literal ( int prefix_len, int modifiers ) {
     yylval.string_literal.token.textlen -= prefix_len;
 
     move();
+
     return STRING_LITERAL;
 }
 
