@@ -12,6 +12,7 @@ static int proc_punctuator ( int punctuator );
 static int proc_identifier ( void );
 static int proc_constant ( int type, int modifiers , int suffix_len);
 static int proc_string_literal ( int modifiers, int prefix_len );
+static int proc_error ( void );
 
 %}
 
@@ -249,7 +250,7 @@ L\"{s_char_sequence}\" {
 
 \n               { column = 0; line++; }
 
-.                { yyerror( "Parse error at line %d, column %d." ); }
+.                { return proc_error(); }
 
 %%
 
@@ -324,6 +325,15 @@ static int proc_string_literal ( int modifiers, int prefix_len ) {
     move();
 
     return STRING_LITERAL;
+}
+
+static int proc_error ( void ) {
+
+    // TODO: consume until a space is reached
+
+    yyerror( "Parse error at line %d, column %d." );
+
+    return PARSE_ERROR;
 }
 
 int yywrap ( void ) {
