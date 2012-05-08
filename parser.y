@@ -25,7 +25,7 @@
 %token <punctuator> '[' ']' '(' ')' '{' '}' '.' '&' '*' '+' '-' ',' '#' '~' '!'
 %token <punctuator> '/' '%' '<' '>' '^' '|' '?' ':' ';' '='
 
-%token <punctuator> AND OR ELLIPSIS MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
+%token <punctuator> LOGICAL_AND LOGICAL_OR ELLIPSIS MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token <punctuator> SUB_ASSIGN LESS_EQUAL MORE_EQUAL EQUAL NOT_EQUAL
 %token <punctuator> LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 %token <punctuator> PASTE POINTER INCREMENT DECREMENT LSHIFT RSHIFT
@@ -136,12 +136,12 @@ inclusive_OR_expression
 
 logical_AND_expression
     : inclusive_OR_expression
-    | logical_AND_expression AND inclusive_OR_expression
+    | logical_AND_expression LOGICAL_AND inclusive_OR_expression
     ;
 
 logical_OR_expression
     : logical_AND_expression
-    | logical_OR_expression OR logical_AND_expression
+    | logical_OR_expression LOGICAL_OR logical_AND_expression
     ;
 
 conditional_expression

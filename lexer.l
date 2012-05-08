@@ -10,7 +10,7 @@ int line = 1, column = 0;
 static int proc_keyword ( int keyword );
 static int proc_punctuator ( int punctuator );
 static int proc_identifier ( void );
-static int proc_constant ( int type, int modifiers , int suffix_len);
+static int proc_constant ( int type, int modifiers, int suffix_len );
 static int proc_string_literal ( int modifiers, int prefix_len );
 static int proc_error ( void );
 
@@ -95,41 +95,41 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 "_Complex"       { return proc_keyword( _COMPLEX  ); }
 "_Imaginary"     { return proc_keyword( _IMAGINARY ); }
 
-"["              { return proc_punctuator( '['  ); }
-"]"              { return proc_punctuator( ']'  ); }
-"("              { return proc_punctuator( '('  ); }
-")"              { return proc_punctuator( ')'  ); }
-"{"              { return proc_punctuator( '{'  ); }
-"}"              { return proc_punctuator( '}'  ); }
-"."              { return proc_punctuator( '.'  ); }
+"["              { return proc_punctuator( '[' ); }
+"]"              { return proc_punctuator( ']' ); }
+"("              { return proc_punctuator( '(' ); }
+")"              { return proc_punctuator( ')' ); }
+"{"              { return proc_punctuator( '{' ); }
+"}"              { return proc_punctuator( '}' ); }
+"."              { return proc_punctuator( '.' ); }
 "->"             { return proc_punctuator( POINTER ); }
 "++"             { return proc_punctuator( INCREMENT ); }
 "--"             { return proc_punctuator( DECREMENT ); }
-"&"              { return proc_punctuator( '&'  ); }
-"*"              { return proc_punctuator( '*'  ); }
-"+"              { return proc_punctuator( '+'  ); }
-"-"              { return proc_punctuator( '-'  ); }
-"~"              { return proc_punctuator( '~'  ); }
-"!"              { return proc_punctuator( '!'  ); }
-"/"              { return proc_punctuator( '/'  ); }
-"%"              { return proc_punctuator( '%'  ); }
+"&"              { return proc_punctuator( '&' ); }
+"*"              { return proc_punctuator( '*' ); }
+"+"              { return proc_punctuator( '+' ); }
+"-"              { return proc_punctuator( '-' ); }
+"~"              { return proc_punctuator( '~' ); }
+"!"              { return proc_punctuator( '!' ); }
+"/"              { return proc_punctuator( '/' ); }
+"%"              { return proc_punctuator( '%' ); }
 "<<"             { return proc_punctuator( LSHIFT ); }
 ">>"             { return proc_punctuator( RSHIFT ); }
-"<"              { return proc_punctuator( '<'  ); }
-">"              { return proc_punctuator( '>'  ); }
+"<"              { return proc_punctuator( '<' ); }
+">"              { return proc_punctuator( '>' ); }
 "<="             { return proc_punctuator( LESS_EQUAL ); }
 ">="             { return proc_punctuator( MORE_EQUAL ); }
 "=="             { return proc_punctuator( EQUAL ); }
 "!="             { return proc_punctuator( NOT_EQUAL ); }
-"^"              { return proc_punctuator( '^'  ); }
-"|"              { return proc_punctuator( '|'  ); }
-"&&"             { return proc_punctuator( AND ); }
-"||"             { return proc_punctuator( OR ); }
-"?"              { return proc_punctuator( '?'  ); }
-":"              { return proc_punctuator( ':'  ); }
-";"              { return proc_punctuator( ';'  ); }
+"^"              { return proc_punctuator( '^' ); }
+"|"              { return proc_punctuator( '|' ); }
+"&&"             { return proc_punctuator( LOGICAL_AND ); }
+"||"             { return proc_punctuator( LOGICAL_OR ); }
+"?"              { return proc_punctuator( '?' ); }
+":"              { return proc_punctuator( ':' ); }
+";"              { return proc_punctuator( ';' ); }
 "..."            { return proc_punctuator( ELLIPSIS ); }
-"="              { return proc_punctuator( '='  ); }
+"="              { return proc_punctuator( '=' ); }
 "*="             { return proc_punctuator( MUL_ASSIGN ); }
 "/="             { return proc_punctuator( DIV_ASSIGN ); }
 "%="             { return proc_punctuator( MOD_ASSIGN ); }
@@ -140,14 +140,14 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 "&="             { return proc_punctuator( AND_ASSIGN ); }
 "^="             { return proc_punctuator( XOR_ASSIGN ); }
 "|="             { return proc_punctuator( OR_ASSIGN ); }
-","              { return proc_punctuator( ','  ); }
-"#"              { return proc_punctuator( '#'  ); }
+","              { return proc_punctuator( ',' ); }
+"#"              { return proc_punctuator( '#' ); }
 "##"             { return proc_punctuator( PASTE ); }
-"<:"             { return proc_punctuator( '['  ); }
-":>"             { return proc_punctuator( ']'  ); }
-"<%"             { return proc_punctuator( '{'  ); }
-"%>"             { return proc_punctuator( '}'  ); }
-"%:"             { return proc_punctuator( '#'  ); }
+"<:"             { return proc_punctuator( '[' ); }
+":>"             { return proc_punctuator( ']' ); }
+"<%"             { return proc_punctuator( '{' ); }
+"%>"             { return proc_punctuator( '}' ); }
+"%:"             { return proc_punctuator( '#' ); }
 "%:%:"           { return proc_punctuator( PASTE ); }
 
 {identifier}     { return proc_identifier(); }
@@ -298,6 +298,8 @@ static int proc_punctuator ( int punctuator ) {
 
 static int proc_identifier ( void ) {
 
+    // TODO: test for TYPE_NAME
+
     save( &(yylval.identifier.token) );
 
     move();
@@ -339,7 +341,7 @@ static int proc_error ( void ) {
 
 int yywrap ( void ) {
 
-    return 0;
+    return 1;
 }
 
 void yyerror ( char * const str ) {
