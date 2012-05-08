@@ -19,4 +19,5 @@
  * 10hs (5/5/2012): learning flex, bison and coding
  *  6hs (6/5/2012): learning bison and coding; found the _typedef-name identifier_ problem
  *  5hs (7/5/2012): researching; found cilk2c and ANTLR + cgram
+ *  2hs (8/5/2012): started to define the AST nodes
 
