@@ -4,7 +4,7 @@
 
 struct ast_node {
 
-    int buffer_offset;
+    char *text;
     int text_length;
 
     int text_line_from;
@@ -17,7 +17,7 @@ struct ast_node {
 
     int data_type;
 
-    int children_number;
+    int child_count;
 
     struct ast_node *parent;
     struct ast_node *first_child;
@@ -25,9 +25,8 @@ struct ast_node {
     struct ast_node *prev_sibling;
     struct ast_node *next_sibling;
 
-    union {
-        void * data;
-    } data;
+    struct ast_node *prev_token;
+    struct ast_node *next_token;
 };
 
 
@@ -39,22 +38,21 @@ enum node_type {
 
 /* tokens (leaf nodes) */
 
+    NODE_WHITESPACE,
+
     NODE_IDENTIFIER,
+
+    NODE_TYPEDEF_NAME,
 
     NODE_STRING_LITERAL,
 
     NODE_CONSTANT,
 
-        /* constant node subtypes */
-
         NODE_CN_INTEGER,
         NODE_CN_FLOATING,
         NODE_CN_CHARACTER,
-        NODE_CN_ENUMERATION,
 
     NODE_KEYWORD,
-
-        /* keyword node subtypes */
 
         NODE_KW_AUTO        = AUTO,
         NODE_KW_BREAK       = BREAK,
@@ -95,8 +93,6 @@ enum node_type {
         NODE_KW__IMAGINARY  = _IMAGINARY,
 
     NODE_PUNCTUATOR,
-
-        /* punctuator node subtypes */
 
         NODE_PT_RSQ_BRACKET = '[',
         NODE_PT_LSQ_BRAQUET = ']',
@@ -147,40 +143,203 @@ enum node_type {
         NODE_PT_LSHIFT 	    = LSHIFT,
         NODE_PT_RSHIFT 	    = RSHIFT,
 
-    /* expressions (internal nodes) */
+/* expressions (internal nodes) */
 
     NODE_EXPRESSION,
 
-        /* expression node subtypes */
-
-        NODE_EX_EXPRESSION,
         NODE_EX_PRIMARY,
+        /* ( NODE_CONSTANT | NODE_IDENTIFIER | NODE_STRING_LITERAL | NODE_EXPRESSION ) */
         NODE_EX_ARRAY_SUBSCRIPTING,
+        /* ( NODE_EXPRESSION , NODE_EXPRESSION )  */
         NODE_EX_FUNCTION_CALL,
+        /* ( NODE_EXPRESSION , NODE_EXPRESSION... ) */
         NODE_EX_MEMBER,
+        /* ( NODE_EXPRESSION , NODE_IDENTIFIER ) */
         NODE_EX_COMPOUND_LITERAL,
-        NODE_EX_POSTFIX,
-        NODE_EX_ARGUMENT,
+        /* ( NODE_TYPE_NAME , NODE_INITIALIZER... ) */
         NODE_EX_UNARY_PREFIX,
+        /* ( NODE_PUNCTUATOR | NODE_IDENTIFIER , NODE_EXPRESSION | NODE_TYPE_NAME ) */
         NODE_EX_UNARY_POSTFIX,
+        /* ( NODE_EXPRESSION , NODE_PUNCTUATOR ) */
         NODE_EX_CAST,
+        /* ( NODE_TYPE_NAME , NODE_EXPRESSION ) */
         NODE_EX_MULTIPLICATIVE,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_ADDITIVE,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_SHIFT,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_RELATIONAL,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_EQUALITY,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_AND,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_EXCLUSIVE_OR,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_INCLUSIVE_OR,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_LOGICAL_AND,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_LOGICAL_OR,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_CONDITIONAL,
+        /* ( NODE_EXPRESSION, NODE_EXPRESSION, NODE_EXPRESSION ) */
         NODE_EX_ASSIGNMENT,
+        /* ( NODE_EXPRESSION, NODE_PUNCTUATOR, NODE_EXPRESSION ) */
         NODE_EX_COMMA,
+        /* ( NODE_EXPRESSION, NODE_EXPRESSION ) */
 
 /* declarations (internal nodes) */
 
-    /* TODO */
+    NODE_DECLARATION,
+    /* ( NODE_DECLARATION_SPECIFIER_LIST, NODE_INIT_DECLARATOR... ) */
+
+    NODE_DECLARATION_SPECIFIER_LIST,
+    /* ( NODE_DECLARATION_SPECIFIER , NODE_DECLARATION_SPECIFIER... ) */
+
+    NODE_DECLARATION_SPECIFIER,
+
+        NODE_SP_STORAGE_CLASS,
+        /* ( NODE_KEYWORD ) */
+        NODE_SP_TYPE,
+        /* ( NODE_KEYWORD | NODE_TYPEDEF_NAME | NODE_STRUCT_OR_UNION_SPECIFIER | NODE_ENUM_SPECIFIER ) */
+        NODE_QU_TYPE,
+        /* ( NODE_KEYWORD ) */
+        NODE_SP_FUNCTION,
+        /* ( NODE_KEYWORD ) */
+
+    NODE_INIT_DECLARATOR,
+
+        NODE_IN_DECLARATOR,
+        /* ( NODE_DECLARATOR ) */
+        NODE_IN_INITIALIZER,
+        /* ( NODE_DECLARATOR , NODE_INITIALIZER ) */
+
+    NODE_STRUCT_OR_UNION_SPECIFIER,
+
+        NODE_ST_UN_DECLARATION,
+        /* ( NODE_KEYWORD, NODE_IDENTIFIER ) */
+        NODE_ST_UN_DEFINITION,
+        /* ( NODE_KEYWORD, NODE_IDENTIFIER, NODE_STRUCT_DECLARATION, NODE_STRUCT_DECLARATION... ) */
+        NODE_ST_UN_ANONYMOUS_DEFINITION,
+        /* ( NODE_KEYWORD, NODE_STRUCT_DECLARATION, NODE_STRUCT_DECLARATION... ) */
+
+    NODE_STRUCT_DECLARATION,
+    /* ( NODE_SPECIFIER_QUALIFIER_LIST, NODE_STRUCT_DECLARATOR, NODE_STRUCT_DECLARATOR... ) */
+
+    NODE_SPECIFIER_QUALIFIER_LIST,
+    /* ( ( NODE_SP_TYPE | NODE_QU_TYPE )... ) */
+
+    NODE_STRUCT_DECLARATOR,
+
+        NODE_ST_DECLARATOR,
+        /* ( NODE_DECLARATOR ) */
+        NODE_ST_BITFIELD,
+        /* ( NODE_DECLARATOR , NODE_EXPRESSION ) */
+        NODE_ST_ANONYMOUS_BITFIELD,
+        /* ( NODE_EXPRESSION ) */
+
+    NODE_ENUM_SPECIFIER,
+
+        NODE_EN_DECLARATION,
+        /* ( NODE_IDENTIFIER ) */
+        NODE_EN_DEFINITION,
+        /* ( NODE_IDENTIFIER , NODE_ENUMERATOR, NODE_ENUMERATOR... ) */
+        NODE_EN_ANONYMOUS_DEFINITION,
+        /* ( NODE_ENUMERATOR, NODE_ENUMERATOR... ) */
+
+    NODE_ENUMERATOR,
+
+        NODE_EN_AUTOMATIC,
+        /* ( NODE_IDENTIFIER ) */
+        NODE_EN_INITIALIZED,
+        /* ( NODE_IDENTIFIER , NODE_EXPRESSION ) */
+
+    NODE_DECLARATOR,
+
+        NODE_DE_DIRECT,
+        /* ( NODE_DIRECT_DECLARATOR , NODE_DIRECT_DECLARATOR... ) */
+        NODE_DE_POINTER,
+        /* ( NODE_POINTER , NODE_DIRECT_DECLARATOR , NODE_DIRECT_DECLARATOR... ) */
+
+    NODE_DIRECT_DECLARATOR,
+
+        NODE_DD_IDENTIFIER,
+        /* ( NODE_IDENTIFIER ) */
+        NODE_DD_DECLARATOR,
+        /* ( NODE_DECLARATOR ) */
+        NODE_DD_AUTOMATIC_ARRAY
+        /* ( NODE_QU_TYPE... ) */
+        NODE_DD_ARRAY,
+        /* ( NODE_EXPRESSION , NODE_QU_TYPE... ) */
+        NODE_DD_STATIC_ARRAY,
+        /* ( NODE_EXPRESSION , NODE_QU_TYPE... ) */
+        NODE_DD_STAR_ARRAY,
+        /* ( NODE_QU_TYPE... ) */
+        NODE_DD_FUNCTION,
+        /* ( NODE_PARAMETER_DECLARATION , NODE_PARAMETER_DECLARATION... ) */
+        NODE_DD_VA_ARG_FUNCTION,
+        /* ( NODE_PARAMETER_DECLARATION , NODE_PARAMETER_DECLARATION... ) */
+        NODE_DD_OLD_FUNCTION,
+        /* ( NODE_IDENTIFIER... ) */
+
+    NODE_PARAMETER_DECLARATION,
+
+        NODE_PA_ANONYMOUS_DECLARATION,
+        /* ( NODE_DECLARATION_SPECIFIER_LIST ) */
+        NODE_PA_DECLARATION,
+        /* ( NODE_DECLARATION_SPECIFIER_LIST , NODE_DECLARATOR ) */
+        NODE_PA_ABSTRACT_DECLARATION,
+        /* ( NODE_DECLARATION_SPECIFIER_LIST , NODE_ABSTRACT_DECLARATOR ) */
+
+    NODE_TYPE_NAME,
+
+        NODE_TN_QUALIFIERS,
+        /* ( NODE_SPECIFIER_QUALIFIER_LIST ) */
+        NODE_TN_DECLARATOR,
+        /* ( NODE_SPECIFIER_QUALIFIER_LIST , NODE_ABSTRACT_DECLARATOR ) */
+
+    NODE_ABSTRACT_DECLARATOR,
+
+        NODE_AB_DIRECT,
+        /* ( NODE_DIRECT_ABSTRACT_DECLARATOR , NODE_DIRECT_ABSTRACT_DECLARATOR... ) */
+        NODE_AB_POINTER,
+        /* ( NODE_POINTER, NODE_DIRECT_ABSTRACT_DECLARATOR... ) */
+
+    NODE_DIRECT_ABSTRACT_DECLARATOR,
+
+        NODE_DA_DECLARATOR,
+        /* ( NODE_ABSTRACT_DECLARATOR ) */
+        NODE_DA_AUTOMATIC_ARRAY
+        /* ( NODE_QU_TYPE...) */
+        NODE_DA_ARRAY,
+        /* ( NODE_EXPRESSION , NODE_QU_TYPE... ) */
+        NODE_DA_STATIC_ARRAY,
+        /* ( NODE_EXPRESSION , NODE_QU_TYPE... ) */
+        NODE_DA_STAR_ARRAY,
+        /* ( ) */
+        NODE_DA_FUNCTION,
+        /* ( NODE_PARAMETER_DECLARATION... ) */
+        NODE_DA_VA_ARG_FUNCTION,
+        /* ( NODE_PARAMETER_DECLARATION , NODE_PARAMETER_DECLARATION... ) */
+
+    NODE_INITIALIZER,
+
+        NODE_IN_EXPRESSION,
+        /* ( NODE_EXPRESSION ) */
+        NODE_IN_INITIALIZER_LIST,
+        /* ( NODE_INITIALIZER_ITEM , NODE_INITIALIZER_ITEM... ) */
+
+    NODE_INITIALIZER_ITEM,
+    /* ( NODE_INITIALIZER , NODE_DESIGNATOR... ) */
+
+    NODE_DESIGNATOR,
+
+        NODE_DE_ARRAY_SUBSCRIPT,
+        /* ( NODE_EXPRESSION ) */
+        NODE_DE_MEMBER,
+        /* ( NODE_IDENTIFIER ) */
 
 /* statements (internal nodes) */
 
