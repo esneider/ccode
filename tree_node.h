@@ -1,8 +1,8 @@
-#ifndef __AST_NODE_H__
-#define __AST_NODE_H__
+#ifndef __TREE_NODE_H__
+#define __TREE_NODE_H__
 
 
-struct ast_node {
+struct tree_node {
 
     char *text;
     int text_length;
@@ -19,14 +19,14 @@ struct ast_node {
 
     int child_count;
 
-    struct ast_node *parent;
-    struct ast_node *first_child;
-    struct ast_node *last_child;
-    struct ast_node *prev_sibling;
-    struct ast_node *next_sibling;
+    struct tree_node *parent;
+    struct tree_node *first_child;
+    struct tree_node *last_child;
+    struct tree_node *prev_sibling;
+    struct tree_node *next_sibling;
 
-    struct ast_node *prev_token;
-    struct ast_node *next_token;
+    struct tree_node *prev_token;
+    struct tree_node *next_token;
 };
 
 
@@ -147,8 +147,14 @@ enum node_type {
 
     NODE_EXPRESSION,
 
-        NODE_EX_PRIMARY,
-        /* ( NODE_CONSTANT | NODE_IDENTIFIER | NODE_STRING_LITERAL | NODE_EXPRESSION ) */
+        NODE_EX_CONSTANT,
+        /* ( NODE_CONSTANT ) */
+        NODE_EX_IDENTIFIER,
+        /* ( NODE_IDENTIFIER ) */
+        NODE_EX_STRING_LITERAL,
+        /* ( NODE_STRING_LITERAL ) */
+        NODE_EX_EXPRESSION,
+        /* ( NODE_EX_EXPRESSION ) */
         NODE_EX_ARRAY_SUBSCRIPTING,
         /* ( NODE_EXPRESSION , NODE_EXPRESSION )  */
         NODE_EX_FUNCTION_CALL,
@@ -157,8 +163,12 @@ enum node_type {
         /* ( NODE_EXPRESSION , NODE_IDENTIFIER ) */
         NODE_EX_COMPOUND_LITERAL,
         /* ( NODE_TYPE_NAME , NODE_INITIALIZER... ) */
+        NODE_EX_SIZEOF_EXPRESSION,
+        /* ( NODE_EXPRESSION ) */
+        NODE_EX_SIZEOF_TYPE_NAME,
+        /* ( NODE_TYPE_NAME ) */
         NODE_EX_UNARY_PREFIX,
-        /* ( NODE_PUNCTUATOR | NODE_IDENTIFIER , NODE_EXPRESSION | NODE_TYPE_NAME ) */
+        /* ( NODE_PUNCTUATOR , NODE_EXPRESSION ) */
         NODE_EX_UNARY_POSTFIX,
         /* ( NODE_EXPRESSION , NODE_PUNCTUATOR ) */
         NODE_EX_CAST,
@@ -352,5 +362,5 @@ enum node_type {
 };
 
 
-#endif /* __AST_NODE_H__ */
+#endif /* __TREE_NODE_H__ */
 
