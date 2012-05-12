@@ -280,13 +280,13 @@ static void save ( void ) {
 
     yylval->text_line_from = line;
     yylval->text_line_to = line;
-    yylval->test_column_from = column;
+    yylval->text_column_from = column;
     yylval->text_column_to = column + yyleng - 1;
 
     yylval->child_count = 0;
 
     yylval->prev_token = last_token;
-    last_token->next_token = yylval;
+    if ( last_token ) last_token->next_token = yylval;
     last_token = yylval;
 }
 

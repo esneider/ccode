@@ -77,7 +77,7 @@ enum tree_node_type {
         NODE_KW_CHAR        = CHAR,
         NODE_KW_CONST       = CONST,
         NODE_KW_CONTINUE    = CONTINUE,
-        NODE_KW_DEFAUT      = DEFAUT,
+        NODE_KW_DEFAULT     = DEFAULT,
         NODE_KW_DO          = DO,
         NODE_KW_DOUBLE      = DOUBLE,
         NODE_KW_ELSE        = ELSE,

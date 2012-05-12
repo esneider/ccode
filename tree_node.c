@@ -4,7 +4,7 @@
 
 struct tree_node* new_tree_node ( void ) {
 
-    struct tree_node *node = calloc( sizeof( struct tree_node ) );
+    struct tree_node *node = calloc( sizeof( struct tree_node ), 1 );
 
     if ( !node ) {
         /* you are in trouble (TODO) */ ;
