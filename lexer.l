@@ -1,18 +1,25 @@
 %{
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "tree_terminals.h"
-#include "parser.tab.h"
+#define YYSTYPE struct tree_node*
 
-int line = 1, column = 0;
+#include "tree_node.h"
+
+
+struct tree_node *last_token = NULL;
+
+int line = 1, column = 0, buffer_pos = 0;
+
 
 static int proc_keyword ( int keyword );
 static int proc_punctuator ( int punctuator );
 static int proc_identifier ( void );
 static int proc_constant ( int type, int modifiers, int suffix_len );
 static int proc_string_literal ( int modifiers, int prefix_len );
-static int proc_error ( void );
+static void proc_whitespace ( void );
+static void proc_directive ( void );
+
+
+extern char *buffer;
 
 %}
 
@@ -21,6 +28,7 @@ digit                 [0-9]
 nonzero_digit         [1-9]
 oct_digit             [0-7]
 hex_digit             [0-9a-fA-F]
+whitespace            [ \t\v\r\f]
 
 hex_prefix            (0x|0X)
 unsigned_suffix       (u|Ui)
@@ -54,6 +62,8 @@ bin_exponent_part     (p|P){sign}?{digit_sequence}
 hex_floating_constant {hex_prefix}({hex_frac_constant}|{hex_digit_sequence}){bin_exponent_part}
 
 floating_constant     ({dec_floating_constant}|{hex_floating_constant})
+
+directive             ^{whitespace}*#[^\n]*
 
 %%
 
@@ -152,89 +162,91 @@ floating_constant     ({dec_floating_constant}|{hex_floating_constant})
 
 {identifier}     { return proc_identifier(); }
 
+{directive}      { proc_directive(); }
+
 {dec_constant} {
 
-        return proc_constant( INT_CONSTANT, NO_MODIFIER, 0 );
+        return proc_constant( NODE_CN_INTEGER, NO_MODIFIER, 0 );
     }
 
 {dec_constant}{long_suffix} {
 
-        return proc_constant( INT_CONSTANT, LONG_MODIFIER, 1 );
+        return proc_constant( NODE_CN_INTEGER, LONG_MODIFIER, 1 );
     }
 
 {dec_constant}{long_long_suffix} {
 
-        return proc_constant( INT_CONSTANT, LONG_LONG_MODIFIER, 1 );
+        return proc_constant( NODE_CN_INTEGER, LONG_LONG_MODIFIER, 1 );
     }
 
 {dec_constant}{unsigned_suffix} {
 
-        return proc_constant( INT_CONSTANT, UNSIGNED_MODIFIER, 1 );
+        return proc_constant( NODE_CN_INTEGER, UNSIGNED_MODIFIER, 1 );
     }
 
 {dec_constant}({unsigned_suffix}{long_suffix}|{long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( INT_CONSTANT, UNSIGNED_MODIFIER | LONG_MODIFIER, 2 );
+        return proc_constant( NODE_CN_INTEGER, UNSIGNED_MODIFIER | LONG_MODIFIER, 2 );
     }
 
 {dec_constant}({unsigned_suffix}{long_long_suffix}|{long_long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( INT_CONSTANT, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER, 2 );
+        return proc_constant( NODE_CN_INTEGER, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER, 2 );
     }
 
 {uint_constant} {
 
-        return proc_constant( UINT_CONSTANT, NO_MODIFIER, 0 );
+        return proc_constant( NODE_CN_UNSIGNED, NO_MODIFIER, 0 );
     }
 
 {uint_constant}{long_suffix} {
 
-        return proc_constant( UINT_CONSTANT, LONG_MODIFIER, 1 );
+        return proc_constant( NODE_CN_UNSIGNED, LONG_MODIFIER, 1 );
     }
 
 {uint_constant}{long_long_suffix} {
 
-        return proc_constant( UINT_CONSTANT, LONG_LONG_MODIFIER, 1 );
+        return proc_constant( NODE_CN_UNSIGNED, LONG_LONG_MODIFIER, 1 );
     }
 
 {uint_constant}{unsigned_suffix} {
 
-        return proc_constant( UINT_CONSTANT, UNSIGNED_MODIFIER, 1 );
+        return proc_constant( NODE_CN_UNSIGNED, UNSIGNED_MODIFIER, 1 );
     }
 
 {uint_constant}({unsigned_suffix}{long_suffix}|{long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( UINT_CONSTANT, UNSIGNED_MODIFIER | LONG_MODIFIER, 2 );
+        return proc_constant( NODE_CN_UNSIGNED, UNSIGNED_MODIFIER | LONG_MODIFIER, 2 );
     }
 
 {uint_constant}({unsigned_suffix}{long_long_suffix}|{long_long_suffix}{unsigned_suffix}) {
 
-        return proc_constant( UINT_CONSTANT, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER, 2 );
+        return proc_constant( NODE_CN_UNSIGNED, UNSIGNED_MODIFIER | LONG_LONG_MODIFIER, 2 );
     }
 
 {floating_constant} {
 
-        return proc_constant( FLOAT_CONSTANT, NO_MODIFIER, 0 );
+        return proc_constant( NODE_CN_FLOATING, NO_MODIFIER, 0 );
     }
 
 {floating_constant}{float_suffix} {
 
-        return proc_constant( FLOAT_CONSTANT, FLOAT_MODIFIER, 1 );
+        return proc_constant( NODE_CN_FLOATING, FLOAT_MODIFIER, 1 );
     }
 
 {floating_constant}{long_suffix} {
 
-        return proc_constant( FLOAT_CONSTANT, LONG_MODIFIER, 1 );
+        return proc_constant( NODE_CN_FLOATING, LONG_MODIFIER, 1 );
     }
 
 '{c_char_sequence}' {
 
-        return proc_constant( CHAR_CONSTANT, NO_MODIFIER, 0 );
+        return proc_constant( NODE_CN_CHARACTER, NO_MODIFIER, 0 );
     }
 
 L'{c_char_sequence}' {
 
-        return proc_constant( CHAR_CONSTANT, WIDE_CHAR_MODIFIER, 1 );
+        return proc_constant( NODE_CN_CHARACTER, WIDE_CHAR_MODIFIER, 1 );
     }
 
 \"{s_char_sequence}\" {
@@ -247,38 +259,43 @@ L\"{s_char_sequence}\" {
         return proc_string_literal( WIDE_CHAR_MODIFIER, 1 );
     }
 
-[ \t\v\r\f]      { column++; }
+{whitespace}+     { proc_whitespace(); }
 
-\n               { column = 0; line++; }
-
-.                { return proc_error(); }
+\n               { column = 0; line++; buffer_pos++; }
 
 %%
 
 static inline void move ( void ) {
 
     column += yyleng;
+    buffer_pos += yyleng;
 }
 
-static void save ( struct token *token ) {
+static void save ( void ) {
 
-    token->line = line;
-    token->column = column;
-    token->textlen = yyleng;
-    token->text = malloc( yyleng + 1 );
+    yylval = new_tree_node();
 
-    if ( token->text ) {
-        memcpy( token->text, yytext, yyleng + 1 );
-    } else {
-        yyerror( "Out of memory error." );
-    }
+    yylval->text = buffer + buffer_pos;
+    yylval->text_length = yyleng;
+
+    yylval->text_line_from = line;
+    yylval->text_line_to = line;
+    yylval->test_column_from = column;
+    yylval->text_column_to = column + yyleng - 1;
+
+    yylval->child_count = 0;
+
+    yylval->prev_token = last_token;
+    last_token->next_token = yylval;
+    last_token = yylval;
 }
 
 static int proc_keyword ( int keyword ) {
 
-    save( &(yylval.keyword.token) );
+    save();
 
-    yylval.keyword.keyword = keyword;
+    yylval->node_type = NODE_KEYWORD;
+    yylval->node_subtype = keyword;
 
     move();
 
@@ -287,9 +304,10 @@ static int proc_keyword ( int keyword ) {
 
 static int proc_punctuator ( int punctuator ) {
 
-    save( &(yylval.punctuator.token) );
+    save();
 
-    yylval.punctuator.punctuator = punctuator;
+    yylval->node_type = NODE_PUNCTUATOR;
+    yylval->node_subtype = punctuator;
 
     move();
 
@@ -298,9 +316,11 @@ static int proc_punctuator ( int punctuator ) {
 
 static int proc_identifier ( void ) {
 
-    // TODO: test for TYPE_NAME
+/* TODO: test for TYPE_NAME */
 
-    save( &(yylval.identifier.token) );
+    save();
+
+    yylval->node_type = NODE_IDENTIFIER;
 
     move();
 
@@ -309,10 +329,14 @@ static int proc_identifier ( void ) {
 
 static int proc_constant ( int type, int modifiers, int suffix_len ) {
 
-    save( &(yylval.constant.token) );
+    save();
 
-    yylval.constant.type = type;
-    yylval.constant.modifiers = modifiers;
+    yylval->node_type = NODE_CONSTANT;
+    yylval->node_subtype = type;
+
+/* TODO: do a proper type analysis */
+
+    yylval->data_type = modifiers;
 
     move();
 
@@ -321,34 +345,39 @@ static int proc_constant ( int type, int modifiers, int suffix_len ) {
 
 static int proc_string_literal ( int modifiers, int prefix_len ) {
 
-    save( &(yylval.string_literal.token) );
+    save();
 
-    yylval.string_literal.modifiers = modifiers;
+    yylval->node_type = NODE_STRING_LITERAL;
+
+/* TODO: do a proper type analysis */
+
+    yylval->data_type = modifiers;
 
     move();
 
     return STRING_LITERAL;
 }
 
-static int proc_error ( void ) {
+static void proc_whitespace ( void ) {
 
-    // TODO: consume until a space is reached
+    save();
 
-    yyerror( "Parse error at line %d, column %d." );
+    yylval->data_type = NODE_WHITESPACE;
 
-    return PARSE_ERROR;
+    move();
+}
+
+static void proc_directive ( void ) {
+
+    save();
+
+    yylval->data_type = NODE_DIRECTIVE;
+
+    move();
 }
 
 int yywrap ( void ) {
 
     return 1;
-}
-
-void yyerror ( char * const str ) {
-
-    fflush( stdout );
-    printf( str, line, column );
-    printf( "\n" );
-    exit( 1 );
 }
 

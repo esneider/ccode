@@ -1,6 +1,8 @@
 #ifndef __TREE_NODE_H__
 #define __TREE_NODE_H__
 
+#include "parser.tab.h"
+
 
 struct tree_node {
 
@@ -30,15 +32,29 @@ struct tree_node {
 };
 
 
-enum node_type {
+/* TODO: remove this from here */
+enum constant_modifiers {
+
+    NO_MODIFIER        = 0,
+    UNSIGNED_MODIFIER  = 1,
+    LONG_MODIFIER      = 2,
+    LONG_LONG_MODIFIER = 4,
+    WIDE_CHAR_MODIFIER = 8,
+    FLOAT_MODIFIER     = 16,
+};
+
+
+enum tree_node_type {
 
 /* empty node */
 
-    NODE_NONE,
+    NODE_NONE = 0,
 
 /* tokens */
 
     NODE_WHITESPACE,
+
+    NODE_DIRECTIVE,
 
     NODE_IDENTIFIER,
 
@@ -49,6 +65,7 @@ enum node_type {
     NODE_CONSTANT,
 
         NODE_CN_INTEGER,
+        NODE_CN_UNSIGNED,
         NODE_CN_FLOATING,
         NODE_CN_CHARACTER,
 
@@ -375,6 +392,13 @@ enum node_type {
     /* ( NODE_DECLARATION_SPECIFIER_LIST , NODE_DECLARATOR , NODE_STATEMENT , NODE_DECLARATION * ) */
 
 };
+
+
+struct tree_node* new_tree_node ( void );
+
+void delete_tree_node ( struct tree_node* );
+
+void delete_tree ( struct tree_node* );
 
 
 #endif /* __TREE_NODE_H__ */

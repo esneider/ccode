@@ -1,36 +1,25 @@
 %{
 
-#include "tree_terminals.h"
+#define YYSTYPE struct tree_node*
+
+#include "tree_node.h"
 
 %}
 
-%union {
+%token IDENTIFIER
+%token TYPE_NAME
+%token STRING_LITERAL
+%token CONSTANT
 
-    struct keyword        keyword;
-    struct punctuator     punctuator;
-    struct identifier     identifier;
-    struct string_literal string_literal;
-    struct constant       constant;
-}
+%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM
+%token EXTERN FLOAT FOR GOTO IF INLINE INT LONG REGISTER RESTRICT
+%token RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION
+%token UNSIGNED VOID VOLATILE WHILE _BOOL _COMPLEX _IMAGINARY
 
-%token <identifier> IDENTIFIER TYPE_NAME
-%token <string_literal> STRING_LITERAL
-%token <constant> CONSTANT
-
-%token <keyword> AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM
-%token <keyword> EXTERN FLOAT FOR GOTO IF INLINE INT LONG REGISTER RESTRICT
-%token <keyword> RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION
-%token <keyword> UNSIGNED VOID VOLATILE WHILE _BOOL _COMPLEX _IMAGINARY
-
-%token <punctuator> '[' ']' '(' ')' '{' '}' '.' '&' '*' '+' '-' ',' '#' '~' '!'
-%token <punctuator> '/' '%' '<' '>' '^' '|' '?' ':' ';' '='
-
-%token <punctuator> LOGICAL_AND LOGICAL_OR ELLIPSIS MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
-%token <punctuator> SUB_ASSIGN LESS_EQUAL MORE_EQUAL EQUAL NOT_EQUAL
-%token <punctuator> LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
-%token <punctuator> PASTE POINTER INCREMENT DECREMENT LSHIFT RSHIFT
-
-%token PARSE_ERROR
+%token LOGICAL_AND LOGICAL_OR ELLIPSIS MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
+%token SUB_ASSIGN LESS_EQUAL MORE_EQUAL EQUAL NOT_EQUAL
+%token LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
+%token PASTE POINTER INCREMENT DECREMENT LSHIFT RSHIFT
 
 %expect 1
 
