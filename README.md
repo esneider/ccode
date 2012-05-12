@@ -4,12 +4,14 @@
 ## TODO:
 
  * flex lexer
-   * v1.0 (5/5/2012)
-   * v1.1 (6/5/2012): tested
+   * v0.1 (5/5/2012)
+   * v0.2 (6/5/2012): tested
+   * v0.3 (12/5/2012): uses the tree nodes
  * bison parser
    * v0.1 (5/5/2012): bison `%union`, no rules yet
    * v0.2 (6/5/2012): grammar rules, no AST yet
  * syntax tree
+   * v0.1 (12/5/2012): tree nodes, no actual tree yet
  * type analisys
  * program encoding
 
@@ -22,4 +24,4 @@
  *  3hs  (8/5/2012): started to define the AST nodes
  *  3hs (10/5/2012): defined declaration AST nodes
  *  2hs (11/5/2012): finished defining AST nodes
-
+ *  2hs (12/5/2012): refactored the lexer to use tree nodes; implemented some tree node utils
