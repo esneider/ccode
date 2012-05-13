@@ -59,7 +59,31 @@ void delete_tree ( struct tree_node* node ) {
 }
 
 
-/* WARNING: must maintain {prev,next}_token manually */
+void tree_node_set_text_bounds ( struct tree_node *node, struct tree_node *first,
+                                 struct tree_node *last )
+{
+    if ( first && ( node->text_line_from > first->text_line_from ||
+         ( node->text_line_from == first->text_line_from &&
+           node->text_column_from > first->text_column_from ) ) ) {
+
+        node->text_line_from = first->text_line_from;
+        node->text_column_from = first->text_column_from;
+        node->prev_token = first->prev_token;
+    }
+
+    if ( last && ( node->text_line_to < last->text_line_to ||
+         ( node->text_line_to == last->text_line_to &&
+           node->text_column_to < last->text_column_to ) ) ) {
+
+        node->text_line_to = last->text_line_to;
+        node->text_column_to = last->text_column_to;
+        node->next_token = last->next_token;
+    }
+}
+
+
+/* WARNING: may have to maintain {prev,next}_tokens manually (if non-member
+            tokens are at the begining/end */
 
 static void tree_node_push_back ( struct tree_node *node, struct tree_node *child ) {
 
@@ -68,9 +92,14 @@ static void tree_node_push_back ( struct tree_node *node, struct tree_node *chil
     child->prev_sibling = node->last_child;
 
     if ( node->child_count++ ) {
+
         node->last_child->next_sibling = child;
+        tree_node_set_text_bounds( node, NULL, child );
+
     } else {
+
         node->first_child = child;
+        tree_node_set_text_bounds( node, child, NULL );
     }
 
     node->last_child = child;
@@ -91,8 +120,9 @@ struct tree_node* tree_node_get_child ( struct tree_node *node, int pos ) {
 }
 
 
-void tree_node_set_child ( struct tree_node *node, int pos, struct tree_node *child ) {
-
+void tree_node_set_child ( struct tree_node *node, int pos,
+                           struct tree_node *child )
+{
     if ( node->child_count <= pos ) {
 
         for ( ; node->child_count < pos; pos-- ) {

@@ -31,7 +31,7 @@ primary_expression
     : IDENTIFIER { $$ = $1; }
     | CONSTANT { $$ = $1; }
     | STRING_LITERAL { $$ = $1 }
-    | '(' expression ')' { /* TODO */ }
+    | '(' expression ')' { tree_node_set_child( $$, 0, $2 ); tree_node_set_text_bounds( $$, $1, $3 ); }
     ;
 
 postfix_expression
