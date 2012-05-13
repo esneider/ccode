@@ -401,5 +401,10 @@ void delete_tree_node ( struct tree_node* );
 void delete_tree ( struct tree_node* );
 
 
+struct tree_node* tree_node_get_child ( struct tree_node *node, int pos );
+
+void tree_node_set_child ( struct tree_node *node, int pos, struct tree_node *child );
+
+
 #endif /* __TREE_NODE_H__ */
 

@@ -28,10 +28,10 @@
 %%
 
 primary_expression
-    : IDENTIFIER
-    | CONSTANT
-    | STRING_LITERAL
-    | '(' expression ')'
+    : IDENTIFIER { $$ = $1; }
+    | CONSTANT { $$ = $1; }
+    | STRING_LITERAL { $$ = $1 }
+    | '(' expression ')' { /* TODO */ }
     ;
 
 postfix_expression
@@ -102,7 +102,7 @@ relational_expression
     | relational_expression MORE_EQUAL shift_expression
     ;
 
-equality_expression
+equality_expressionyy_scan_buffer
     : relational_expression
     | equality_expression EQUAL relational_expression
     | equality_expression NOT_EQUAL relational_expression

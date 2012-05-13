@@ -58,3 +58,71 @@ void delete_tree ( struct tree_node* node ) {
     delete_tree_node( node );
 }
 
+
+/* WARNING: must maintain {prev,next}_token manually */
+
+static void tree_node_push_back ( struct tree_node *node, struct tree_node *child ) {
+
+    child->parent = node;
+    child->next_sibling = NULL;
+    child->prev_sibling = node->last_child;
+
+    if ( node->child_count++ ) {
+        node->last_child->next_sibling = child;
+    } else {
+        node->first_child = child;
+    }
+
+    node->last_child = child;
+}
+
+
+struct tree_node* tree_node_get_child ( struct tree_node *node, int pos ) {
+
+    if ( node->child_count <= pos )
+        return NULL;
+
+    for ( node = node->first_child; pos; pos-- ) {
+
+        node = node->next_sibling;
+    }
+
+    return node;
+}
+
+
+void tree_node_set_child ( struct tree_node *node, int pos, struct tree_node *child ) {
+
+    if ( node->child_count <= pos ) {
+
+        for ( ; node->child_count < pos; pos-- ) {
+
+            tree_node_push_back( node, new_tree_node() );
+        }
+
+        tree_node_push_back( node, child );
+
+    } else {
+
+        node = tree_node_get_child( node, pos );
+
+        child->parent = node->parent;
+        child->prev_sibling = node->prev_sibling;
+        child->next_sibling = node->next_sibling;
+
+        delete_tree( node );
+
+        if ( child->prev_sibling ) {
+            child->prev_sibling->next_sibling = child;
+        } else {
+            child->parent->first_child = child;
+        }
+
+        if ( child->next_sibling ) {
+            child->next_sibling->prev_sibling = child;
+        } else {
+            child->parent->last_child = child;
+        }
+    }
+}
+
