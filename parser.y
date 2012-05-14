@@ -222,7 +222,7 @@ multiplicative_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_MULTIPLICATIVE;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | multiplicative_expression '/' cast_expression {
 
@@ -231,7 +231,7 @@ multiplicative_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_MULTIPLICATIVE;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | multiplicative_expression '%' cast_expression {
 
@@ -240,7 +240,7 @@ multiplicative_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_MULTIPLICATIVE;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -253,7 +253,7 @@ additive_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_ADDITIVE;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | additive_expression '-' multiplicative_expression {
 
@@ -262,7 +262,7 @@ additive_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_ADDITIVE;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -275,7 +275,7 @@ shift_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_SHIFT;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | shift_expression RSHIFT additive_expression {
 
@@ -284,7 +284,7 @@ shift_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_SHIFT;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -297,7 +297,7 @@ relational_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_RELATIONAL;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | relational_expression '>' shift_expression {
 
@@ -306,7 +306,7 @@ relational_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_RELATIONAL;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | relational_expression LESS_EQUAL shift_expression {
 
@@ -315,7 +315,7 @@ relational_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_RELATIONAL;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | relational_expression MORE_EQUAL shift_expression {
 
@@ -324,7 +324,7 @@ relational_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_RELATIONAL;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -337,7 +337,7 @@ equality_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_EQUALITY;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     | equality_expression NOT_EQUAL relational_expression {
 
@@ -346,7 +346,7 @@ equality_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_EQUALITY;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -359,7 +359,7 @@ AND_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_AND;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -372,7 +372,7 @@ exclusive_OR_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_EXCLUSIVE_OR;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -385,7 +385,7 @@ inclusive_OR_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_INCLUSIVE_OR;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -398,7 +398,7 @@ logical_AND_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_LOGICAL_AND;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
@@ -411,7 +411,7 @@ logical_OR_expression
             tree_node_set_child( $$, 1, $2 );
             tree_node_set_child( $$, 2, $3 );
             $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_LOGICAL_OR;
+            $$->node_subtype = NODE_EX_BINARY;
         }
     ;
 
