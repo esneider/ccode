@@ -62,9 +62,10 @@ void delete_tree ( struct tree_node* node ) {
 void tree_node_set_text_bounds ( struct tree_node *node, struct tree_node *first,
                                  struct tree_node *last )
 {
-    if ( first && ( node->text_line_from > first->text_line_from ||
-         ( node->text_line_from == first->text_line_from &&
-           node->text_column_from > first->text_column_from ) ) ) {
+    if ( first && ( !node->text_line_from ||
+                    node->text_line_from > first->text_line_from ||
+                    ( node->text_line_from == first->text_line_from &&
+                      node->text_column_from > first->text_column_from ) ) ) {
 
         node->text_line_from = first->text_line_from;
         node->text_column_from = first->text_column_from;
@@ -72,8 +73,8 @@ void tree_node_set_text_bounds ( struct tree_node *node, struct tree_node *first
     }
 
     if ( last && ( node->text_line_to < last->text_line_to ||
-         ( node->text_line_to == last->text_line_to &&
-           node->text_column_to < last->text_column_to ) ) ) {
+                   ( node->text_line_to == last->text_line_to &&
+                     node->text_column_to < last->text_column_to ) ) ) {
 
         node->text_line_to = last->text_line_to;
         node->text_column_to = last->text_column_to;
