@@ -29,9 +29,24 @@
 %%
 
 primary_expression
-    : IDENTIFIER { $$ = $1; }
-    | CONSTANT { $$ = $1; }
-    | STRING_LITERAL { $$ = $1; }
+    : IDENTIFIER {
+
+            $$ = $1;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_IDENTIFIER;
+        }
+    | CONSTANT {
+
+            $$ = $1;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_CONSTANT;
+        }
+    | STRING_LITERAL {
+
+            $$ = $1;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_STRING_LITERAL;
+        }
     | '(' expression ')' {
 
             $$ = new_tree_node();
@@ -43,7 +58,7 @@ primary_expression
     ;
 
 postfix_expression
-    : primary_expression { $$ = $1; }
+    : primary_expression
     | postfix_expression '[' expression ']' {
 
             $$ = new_tree_node();
@@ -123,21 +138,57 @@ postfix_expression
 argument_expression_list
     : assignment_expression {
 
-            printf("\n1\n");
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
         }
     | argument_expression_list ',' assignment_expression {
 
-            printf("\n2\n");
+            tree_node_push_back( $$, $3 );
         }
     ;
 
 unary_expression
     : postfix_expression
-    | INCREMENT unary_expression
-    | DECREMENT unary_expression
-    | unary_operator cast_expression
-    | SIZEOF unary_expression
-    | SIZEOF '(' type_name ')'
+    | INCREMENT unary_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_UNARY_PREFIX;
+        }
+    | DECREMENT unary_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_UNARY_PREFIX;
+        }
+    | unary_operator cast_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_UNARY_PREFIX;
+        }
+    | SIZEOF unary_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $2 );
+            tree_node_set_text_bounds( $$, $1, NULL );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_SIZEOF_EXPRESSION;
+        }
+    | SIZEOF '(' type_name ')' {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $2 );
+            tree_node_set_text_bounds( $$, $1, NULL );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_SIZEOF_TYPE_NAME;
+        }
     ;
 
 unary_operator
@@ -151,75 +202,243 @@ unary_operator
 
 cast_expression
     : unary_expression
-    | '(' type_name ')' cast_expression
+    | '(' type_name ')' cast_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $2 );
+            tree_node_set_child( $$, 1, $4 );
+            tree_node_set_text_bounds( $$, $1, NULL );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_CAST;
+        }
     ;
 
 multiplicative_expression
     : cast_expression
-    | multiplicative_expression '*' cast_expression
-    | multiplicative_expression '/' cast_expression
-    | multiplicative_expression '%' cast_expression
+    | multiplicative_expression '*' cast_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_MULTIPLICATIVE;
+        }
+    | multiplicative_expression '/' cast_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_MULTIPLICATIVE;
+        }
+    | multiplicative_expression '%' cast_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_MULTIPLICATIVE;
+        }
     ;
 
 additive_expression
     : multiplicative_expression
-    | additive_expression '+' multiplicative_expression
-    | additive_expression '-' multiplicative_expression
+    | additive_expression '+' multiplicative_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_ADDITIVE;
+        }
+    | additive_expression '-' multiplicative_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_ADDITIVE;
+        }
     ;
 
 shift_expression
     : additive_expression
-    | shift_expression LSHIFT additive_expression
-    | shift_expression RSHIFT additive_expression
+    | shift_expression LSHIFT additive_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_SHIFT;
+        }
+    | shift_expression RSHIFT additive_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_SHIFT;
+        }
     ;
 
 relational_expression
     : shift_expression
-    | relational_expression '<' shift_expression
-    | relational_expression '>' shift_expression
-    | relational_expression LESS_EQUAL shift_expression
-    | relational_expression MORE_EQUAL shift_expression
+    | relational_expression '<' shift_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_RELATIONAL;
+        }
+    | relational_expression '>' shift_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_RELATIONAL;
+        }
+    | relational_expression LESS_EQUAL shift_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_RELATIONAL;
+        }
+    | relational_expression MORE_EQUAL shift_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_RELATIONAL;
+        }
     ;
 
 equality_expression
     : relational_expression
-    | equality_expression EQUAL relational_expression
-    | equality_expression NOT_EQUAL relational_expression
+    | equality_expression EQUAL relational_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_EQUALITY;
+        }
+    | equality_expression NOT_EQUAL relational_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_EQUALITY;
+        }
     ;
 
 AND_expression
     : equality_expression
-    | AND_expression '&' equality_expression
+    | AND_expression '&' equality_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_AND;
+        }
     ;
 
 exclusive_OR_expression
     : AND_expression
-    | exclusive_OR_expression '^' AND_expression
+    | exclusive_OR_expression '^' AND_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_EXCLUSIVE_OR;
+        }
     ;
 
 inclusive_OR_expression
     : exclusive_OR_expression
-    | inclusive_OR_expression '|' exclusive_OR_expression
+    | inclusive_OR_expression '|' exclusive_OR_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_INCLUSIVE_OR;
+        }
     ;
 
 logical_AND_expression
     : inclusive_OR_expression
-    | logical_AND_expression LOGICAL_AND inclusive_OR_expression
+    | logical_AND_expression LOGICAL_AND inclusive_OR_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_LOGICAL_AND;
+        }
     ;
 
 logical_OR_expression
     : logical_AND_expression
-    | logical_OR_expression LOGICAL_OR logical_AND_expression
+    | logical_OR_expression LOGICAL_OR logical_AND_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_LOGICAL_OR;
+        }
     ;
 
 conditional_expression
     : logical_OR_expression
-    | logical_OR_expression '?' expression ':' conditional_expression
+    | logical_OR_expression '?' expression ':' conditional_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            tree_node_set_child( $$, 2, $5 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_CONDITIONAL;
+        }
     ;
 
 assignment_expression
     : conditional_expression
-    | unary_expression assignment_operator assignment_expression
+    | unary_expression assignment_operator assignment_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            tree_node_set_child( $$, 2, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_ASSIGNMENT;
+        }
     ;
 
 assignment_operator
@@ -238,7 +457,14 @@ assignment_operator
 
 expression
     : assignment_expression
-    | expression ',' assignment_expression
+    | expression ',' assignment_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_COMMA;
+        }
     ;
 
 constant_expression
