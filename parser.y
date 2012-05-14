@@ -547,6 +547,7 @@ init_declarator
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, new_tree_node() ); /* necessary? */
             $$->node_type = NODE_INIT_DECLARATOR;
         }
     | declarator '=' initializer {
@@ -698,9 +699,32 @@ type_specifier
     ;
 
 struct_or_union_specifier
-    : struct_or_union IDENTIFIER '{' struct_declaration_list '}'
-    | struct_or_union '{' struct_declaration_list '}'
-    | struct_or_union IDENTIFIER
+    : struct_or_union IDENTIFIER '{' struct_declaration_list '}' {
+
+            $$ = $4;
+            tree_node_push_front( $$, $2 );
+            tree_node_push_front( $$, $1 );
+            tree_node_set_text_bounds( $$, NULL, $5 );
+            $$->node_type = NODE_STRUCT_OR_UNION_SPECIFIER;
+            $$->node_subtype = NODE_SU_DEFINITION;
+        }
+    | struct_or_union '{' struct_declaration_list '}' {
+
+            $$ = $3;
+            tree_node_push_front( $$, new_tree_node() );
+            tree_node_push_front( $$, $1 );
+            tree_node_set_text_bounds( $$, NULL, $4 );
+            $$->node_type = NODE_STRUCT_OR_UNION_SPECIFIER;
+            $$->node_subtype = NODE_SU_DEFINITION;
+        }
+    | struct_or_union IDENTIFIER {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->node_type = NODE_STRUCT_OR_UNION_SPECIFIER;
+            $$->node_subtype = NODE_SU_DECLARATION;
+        }
     ;
 
 struct_or_union
@@ -709,23 +733,54 @@ struct_or_union
     ;
 
 struct_declaration_list
-    : struct_declaration
-    | struct_declaration_list struct_declaration
+    : struct_declaration {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+        }
+    | struct_declaration_list struct_declaration {
+
+            tree_node_push_back( $$, $2 );
+        }
     ;
 
 struct_declaration
-    : specifier_qualifier_list struct_declarator_list ';'
+    : specifier_qualifier_list struct_declarator_list ';' {
+
+            $$ = $2;
+            tree_node_push_front( $$, $1 );
+            tree_node_set_text_bounds( $$, NULL, $3 );
+            $$->node_type = NODE_STRUCT_DECLARATION;
+        }
     ;
 
 specifier_qualifier_list
-    : type_specifier specifier_qualifier_list
-    | type_specifier
-    | type_qualifier specifier_qualifier_list
-    | type_qualifier
+    : specifier_qualifier_list type_specifier {
+
+            tree_node_push_back( $$, $2 );
+        }
+    | type_specifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
+        }
+    | specifier_qualifier_list type_qualifier {
+
+            tree_node_push_back( $$, $2 );
+        }
+    | type_qualifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
+        }
     ;
 
 struct_declarator_list
-    : struct_declarator
+    : struct_declarator {
+            /* TODO */
+        }
     | struct_declarator_list ',' struct_declarator
     ;
 

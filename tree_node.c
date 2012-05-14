@@ -63,7 +63,8 @@ void tree_node_set_text_bounds ( struct tree_node *node, struct tree_node *first
                                  struct tree_node *last )
 {
     if ( first && ( !node->text_line_from ||
-                    node->text_line_from > first->text_line_from ||
+                    ( first->text_line_from &&
+                      node->text_line_from > first->text_line_from ) ||
                     ( node->text_line_from == first->text_line_from &&
                       node->text_column_from > first->text_column_from ) ) ) {
 
