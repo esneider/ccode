@@ -25,3 +25,4 @@
  *  3hs (10/5/2012): defined declaration AST nodes
  *  2hs (11/5/2012): finished defining AST nodes
  *  3hs (12/5/2012): refactored the lexer to use tree nodes; implemented some tree node utils
+ *  3hs (13/5/2012): more tree node utils; started to build the syntax tree
