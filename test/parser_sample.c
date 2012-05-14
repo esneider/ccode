@@ -1,9 +1,10 @@
 
 int f ( void ) {
 
-    f( 1, 2, 3 );
-    f( 1, 2 );
-    f( 1 );
-    f();
+    static a;
+    static typedef auto inline a;
+    static inline typedef a;
+    static inline a;
+    inline static a;
+    inline a;
 }
-

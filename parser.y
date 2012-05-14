@@ -472,54 +472,229 @@ constant_expression
     ;
 
 declaration
-    : declaration_specifiers init_declarator_list ';'
-    | declaration_specifiers ';'
+    : declaration_specifiers init_declarator_list ';' {
+
+            $$ = $2;
+            tree_node_push_front( $$, $1 );
+            tree_node_set_text_bounds( $$, NULL, $3 );
+            $$->node_type = NODE_DECLARATION;
+        }
+    | declaration_specifiers ';' {
+
+            $$ = $1;
+            tree_node_set_text_bounds( $$, NULL, $2 );
+            $$->node_type = NODE_DECLARATION;
+        }
     ;
 
 declaration_specifiers
-    : storage_class_specifier declaration_specifiers
-    | storage_class_specifier
-    | type_specifier declaration_specifiers
-    | type_specifier
-    | type_qualifier declaration_specifiers
-    | type_qualifier
-    | function_specifier declaration_specifiers
-    | function_specifier
+    : declaration_specifiers storage_class_specifier {
+
+            tree_node_push_back( $$, $2 );
+        }
+    | storage_class_specifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
+        }
+    | declaration_specifiers type_specifier {
+
+            tree_node_push_back( $$, $2 );
+        }
+    | type_specifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
+        }
+    | declaration_specifiers type_qualifier {
+
+            tree_node_push_back( $$, $2 );
+        }
+    | type_qualifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
+        }
+    | declaration_specifiers function_specifier {
+
+            tree_node_push_back( $$, $2 );
+        }
+    | function_specifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
+        }
     ;
 
 init_declarator_list
-    : init_declarator
-    | init_declarator_list ',' init_declarator
+    : init_declarator {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+        }
+    | init_declarator_list ',' init_declarator {
+
+            tree_node_push_back( $$, $3 );
+        }
     ;
 
 init_declarator
-    : declarator
-    | declarator '=' initializer
+    : declarator {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_INIT_DECLARATOR;
+        }
+    | declarator '=' initializer {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->node_type = NODE_INIT_DECLARATOR;
+        }
     ;
 
 storage_class_specifier
-    : TYPEDEF
-    | EXTERN
-    | STATIC
-    | AUTO
-    | REGISTER
+    : TYPEDEF {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_STORAGE_CLASS;
+        }
+    | EXTERN {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_STORAGE_CLASS;
+        }
+    | STATIC {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_STORAGE_CLASS;
+        }
+    | AUTO {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_STORAGE_CLASS;
+        }
+    | REGISTER {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_STORAGE_CLASS;
+        }
     ;
 
 type_specifier
-    : VOID
-    | CHAR
-    | SHORT
-    | INT
-    | LONG
-    | FLOAT
-    | DOUBLE
-    | SIGNED
-    | UNSIGNED
-    | _BOOL
-    | _COMPLEX
-    | struct_or_union_specifier
-    | enum_specifier
-    | typedef_name
+    : VOID {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | CHAR {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | SHORT {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | INT {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | LONG {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | FLOAT {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | DOUBLE {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | SIGNED {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | UNSIGNED {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | _BOOL {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | _COMPLEX {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | struct_or_union_specifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | enum_specifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
+    | typedef_name {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_TYPE;
+        }
     ;
 
 struct_or_union_specifier
