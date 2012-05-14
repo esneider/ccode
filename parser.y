@@ -30,21 +30,93 @@
 primary_expression
     : IDENTIFIER { $$ = $1; }
     | CONSTANT { $$ = $1; }
-    | STRING_LITERAL { $$ = $1 }
-    | '(' expression ')' { tree_node_set_child( $$, 0, $2 ); tree_node_set_text_bounds( $$, $1, $3 ); }
+    | STRING_LITERAL { $$ = $1; }
+    | '(' expression ')' {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $2 );
+            tree_node_set_text_bounds( $$, $1, $3 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_EXPRESSION;
+        }
     ;
 
 postfix_expression
-    : primary_expression
-    | postfix_expression '[' expression ']'
-    | postfix_expression '(' argument_expression_list ')'
-    | postfix_expression '(' ')'
-    | postfix_expression '.' IDENTIFIER
-    | postfix_expression POINTER IDENTIFIER
-    | postfix_expression INCREMENT
-    | postfix_expression DECREMENT
-    | '(' type_name ')' '{' initializer_list '}'
-    | '(' type_name ')' '{' initializer_list ',' '}'
+    : primary_expression { $$ = $1; }
+    | postfix_expression '[' expression ']' {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            tree_node_set_text_bounds( $$, NULL, $4 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_ARRAY_SUBSCRIPTING;
+        }
+    | postfix_expression '(' argument_expression_list ')' {
+
+            $$ = $3;
+            tree_node_push_front( $$, $1 );
+            tree_node_set_text_bounds( $$, NULL, $4 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_FUNCTION_CALL;
+        }
+    | postfix_expression '(' ')' {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_text_bounds( $$, NULL, $3 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_FUNCTION_CALL;
+        }
+    | postfix_expression '.' IDENTIFIER {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_MEMBER;
+        }
+    | postfix_expression POINTER IDENTIFIER {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_POINTER_MEMBER;
+        }
+    | postfix_expression INCREMENT {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_UNARY_POSTFIX;
+        }
+    | postfix_expression DECREMENT {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $2 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_UNARY_POSTFIX;
+        }
+    | '(' type_name ')' '{' initializer_list '}' {
+
+            $$ = $5;
+            tree_node_push_front( $$, $2 );
+            tree_node_set_text_bounds( $$, $1, $6 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_COMPOUND_LITERAL;
+        }
+    | '(' type_name ')' '{' initializer_list ',' '}' {
+
+            $$ = $5;
+            tree_node_push_front( $$, $2 );
+            tree_node_set_text_bounds( $$, $1, $7 );
+            $$->data_type = NODE_EXPRESSION;
+            $$->data_subtype = NODE_EX_COMPOUND_LITERAL;
+        }
+
     ;
 
 argument_expression_list

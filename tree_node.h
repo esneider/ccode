@@ -178,6 +178,8 @@ enum tree_node_type {
         /* ( NODE_EXPRESSION + ) */
         NODE_EX_MEMBER,
         /* ( NODE_EXPRESSION , NODE_IDENTIFIER ) */
+        NODE_EX_POINTER_MEMBER,
+        /* ( NODE_EXPRESSION , NODE_IDENTIFIER ) */
         NODE_EX_COMPOUND_LITERAL,
         /* ( NODE_TYPE_NAME , NODE_INITIALIZER * ) */
         NODE_EX_SIZEOF_EXPRESSION,
@@ -294,6 +296,12 @@ enum tree_node_type {
         NODE_PA_ABSTRACT_DECLARATION,
         /* ( NODE_DECLARATION_SPECIFIER_LIST , NODE_ABSTRACT_DECLARATOR ? ) */
 
+    NODE_POINTER,
+    /* ( NODE_QUALIFIER_LIST + ) */
+
+    NODE_QUALIFIER_LIST,
+    /* ( NODE_QU_TYPE * ) */
+
     NODE_TYPE_NAME,
     /* ( NODE_SPECIFIER_QUALIFIER_LIST , NODE_ABSTRACT_DECLARATOR ? ) */
 
@@ -401,10 +409,15 @@ void delete_tree_node ( struct tree_node* );
 void delete_tree ( struct tree_node* );
 
 
+static void tree_node_push_front ( struct tree_node *node, struct tree_node *child );
+
+static void tree_node_push_back ( struct tree_node *node, struct tree_node *child );
+
+
 struct tree_node* tree_node_get_child ( struct tree_node *node, int pos );
 
-void tree_node_set_child ( struct tree_node *node, int pos,
-                           struct tree_node *child );
+void tree_node_set_child ( struct tree_node *node, int pos, struct tree_node *child );
+
 
 void tree_node_set_text_bounds ( struct tree_node *node, struct tree_node *first,
                                  struct tree_node *last );

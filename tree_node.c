@@ -99,10 +99,31 @@ static void tree_node_push_back ( struct tree_node *node, struct tree_node *chil
     } else {
 
         node->first_child = child;
-        tree_node_set_text_bounds( node, child, NULL );
+        tree_node_set_text_bounds( node, child, child );
     }
 
     node->last_child = child;
+}
+
+
+static void tree_node_push_front ( struct tree_node *node, struct tree_node *child ) {
+
+    child->parent = node;
+    child->next_sibling = node->first_child;
+    child->prev_sibling = NULL;
+
+    if ( node->child_count++ ) {
+
+        node->first_child->prev_sibling = child;
+        tree_node_set_text_bounds( node, child, NULL );
+
+    } else {
+
+        node->last_child = child;
+        tree_node_set_text_bounds( node, child, child );
+    }
+
+    node->first_child = child;
 }
 
 
