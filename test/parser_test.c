@@ -7,7 +7,7 @@
 
 YYSTYPE yylval;
 
-int yylex( void );
+int yyparse( void );
 
 char *buffer;
 
@@ -18,7 +18,7 @@ int main ( void ) {
 
     int buffer_state;
 
-    FILE *file = fopen( "lexer_sample.c", "rb" );
+    FILE *file = fopen( "parser_sample.c", "rb" );
 
     if ( !file ) {
         printf( "file error\n" );
@@ -46,9 +46,8 @@ int main ( void ) {
         return 1;
     }
 
-    while ( ret = yylex() ) {
+    while ( ret = yyparse() ) {
 
-        printf( "%d (%.*s)\n", ret, yylval->text_length, yylval->text );
     }
 
     free( buffer );

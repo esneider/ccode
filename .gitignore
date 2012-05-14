@@ -4,4 +4,8 @@
 *.tab.h
 *.yy.c
 *.output
+a.out
+a.out.*
+*.pdf
+test/mock/*
 

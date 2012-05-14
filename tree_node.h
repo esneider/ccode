@@ -409,9 +409,9 @@ void delete_tree_node ( struct tree_node* );
 void delete_tree ( struct tree_node* );
 
 
-static void tree_node_push_front ( struct tree_node *node, struct tree_node *child );
+void tree_node_push_front ( struct tree_node *node, struct tree_node *child );
 
-static void tree_node_push_back ( struct tree_node *node, struct tree_node *child );
+void tree_node_push_back ( struct tree_node *node, struct tree_node *child );
 
 
 struct tree_node* tree_node_get_child ( struct tree_node *node, int pos );

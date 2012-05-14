@@ -2,6 +2,7 @@
 
 #define YYSTYPE struct tree_node*
 
+#include <stdlib.h>
 #include "tree_node.h"
 
 %}
@@ -36,8 +37,8 @@ primary_expression
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $2 );
             tree_node_set_text_bounds( $$, $1, $3 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_EXPRESSION;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_EXPRESSION;
         }
     ;
 
@@ -49,79 +50,85 @@ postfix_expression
             tree_node_set_child( $$, 0, $1 );
             tree_node_set_child( $$, 1, $3 );
             tree_node_set_text_bounds( $$, NULL, $4 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_ARRAY_SUBSCRIPTING;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_ARRAY_SUBSCRIPTING;
         }
     | postfix_expression '(' argument_expression_list ')' {
 
             $$ = $3;
             tree_node_push_front( $$, $1 );
             tree_node_set_text_bounds( $$, NULL, $4 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_FUNCTION_CALL;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_FUNCTION_CALL;
         }
     | postfix_expression '(' ')' {
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
             tree_node_set_text_bounds( $$, NULL, $3 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_FUNCTION_CALL;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_FUNCTION_CALL;
         }
     | postfix_expression '.' IDENTIFIER {
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
             tree_node_set_child( $$, 1, $3 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_MEMBER;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_MEMBER;
         }
     | postfix_expression POINTER IDENTIFIER {
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
             tree_node_set_child( $$, 1, $3 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_POINTER_MEMBER;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_POINTER_MEMBER;
         }
     | postfix_expression INCREMENT {
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
             tree_node_set_child( $$, 1, $2 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_UNARY_POSTFIX;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_UNARY_POSTFIX;
         }
     | postfix_expression DECREMENT {
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
             tree_node_set_child( $$, 1, $2 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_UNARY_POSTFIX;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_UNARY_POSTFIX;
         }
     | '(' type_name ')' '{' initializer_list '}' {
 
             $$ = $5;
             tree_node_push_front( $$, $2 );
             tree_node_set_text_bounds( $$, $1, $6 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_COMPOUND_LITERAL;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_COMPOUND_LITERAL;
         }
     | '(' type_name ')' '{' initializer_list ',' '}' {
 
             $$ = $5;
             tree_node_push_front( $$, $2 );
             tree_node_set_text_bounds( $$, $1, $7 );
-            $$->data_type = NODE_EXPRESSION;
-            $$->data_subtype = NODE_EX_COMPOUND_LITERAL;
+            $$->node_type = NODE_EXPRESSION;
+            $$->node_subtype = NODE_EX_COMPOUND_LITERAL;
         }
 
     ;
 
 argument_expression_list
-    : assignment_expression
-    | argument_expression_list ',' assignment_expression
+    : assignment_expression {
+
+            printf("\n1\n");
+        }
+    | argument_expression_list ',' assignment_expression {
+
+            printf("\n2\n");
+        }
     ;
 
 unary_expression
@@ -174,7 +181,7 @@ relational_expression
     | relational_expression MORE_EQUAL shift_expression
     ;
 
-equality_expressionyy_scan_buffer
+equality_expression
     : relational_expression
     | equality_expression EQUAL relational_expression
     | equality_expression NOT_EQUAL relational_expression

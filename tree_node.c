@@ -86,28 +86,7 @@ void tree_node_set_text_bounds ( struct tree_node *node, struct tree_node *first
 /* WARNING: may have to maintain {prev,next}_tokens manually (if non-member
             tokens are at the begining/end */
 
-static void tree_node_push_back ( struct tree_node *node, struct tree_node *child ) {
-
-    child->parent = node;
-    child->next_sibling = NULL;
-    child->prev_sibling = node->last_child;
-
-    if ( node->child_count++ ) {
-
-        node->last_child->next_sibling = child;
-        tree_node_set_text_bounds( node, NULL, child );
-
-    } else {
-
-        node->first_child = child;
-        tree_node_set_text_bounds( node, child, child );
-    }
-
-    node->last_child = child;
-}
-
-
-static void tree_node_push_front ( struct tree_node *node, struct tree_node *child ) {
+void tree_node_push_front ( struct tree_node *node, struct tree_node *child ) {
 
     child->parent = node;
     child->next_sibling = node->first_child;
@@ -125,6 +104,27 @@ static void tree_node_push_front ( struct tree_node *node, struct tree_node *chi
     }
 
     node->first_child = child;
+}
+
+
+void tree_node_push_back ( struct tree_node *node, struct tree_node *child ) {
+
+    child->parent = node;
+    child->next_sibling = NULL;
+    child->prev_sibling = node->last_child;
+
+    if ( node->child_count++ ) {
+
+        node->last_child->next_sibling = child;
+        tree_node_set_text_bounds( node, NULL, child );
+
+    } else {
+
+        node->first_child = child;
+        tree_node_set_text_bounds( node, child, child );
+    }
+
+    node->last_child = child;
 }
 
 
