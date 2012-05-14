@@ -14,6 +14,7 @@
    * v0.1 (12/5/2012): tree nodes, no actual tree yet
  * type analisys
  * program encoding
+ * error handling
 
 
 ## TIME:
@@ -26,3 +27,4 @@
  *  2hs (11/5/2012): finished defining AST nodes
  *  3hs (12/5/2012): refactored the lexer to use tree nodes; implemented some tree node utils
  *  3hs (13/5/2012): more tree node utils; started to build the syntax tree
+ *  4hs (14/5/2012): expression's syntax tree; parse test
