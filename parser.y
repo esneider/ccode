@@ -547,7 +547,7 @@ init_declarator
 
             $$ = new_tree_node();
             tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, new_tree_node() ); /* necessary? */
+            // tree_node_set_child( $$, 1, new_tree_node() );
             $$->node_type = NODE_INIT_DECLARATOR;
         }
     | declarator '=' initializer {
@@ -779,19 +779,44 @@ specifier_qualifier_list
 
 struct_declarator_list
     : struct_declarator {
-            /* TODO */
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
         }
-    | struct_declarator_list ',' struct_declarator
+    | struct_declarator_list ',' struct_declarator {
+
+            tree_node_push_back( $$, $3 );
+        }
     ;
 
 struct_declarator
-    : declarator
-    | declarator ':' constant_expression
-    | ':' constant_expression
+    : declarator {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            // tree_node_set_child( $$, 1, new_tree_node() );
+            $$->node_type = NODE_STRUCT_DECLARATOR;
+        }
+    | declarator ':' constant_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            $$->node_type = NODE_STRUCT_DECLARATOR;
+        }
+    | ':' constant_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 1, $2 );
+            $$->node_type = NODE_STRUCT_DECLARATOR;
+        }
     ;
 
 enum_specifier
-    : ENUM IDENTIFIER '{' enumerator_list '}'
+    : ENUM IDENTIFIER '{' enumerator_list '}' {
+
+            // TODO
+        }
     | ENUM '{' enumerator_list '}'
     | ENUM IDENTIFIER '{' enumerator_list ',' '}'
     | ENUM '{' enumerator_list ',' '}'

@@ -139,6 +139,9 @@ struct tree_node* tree_node_get_child ( struct tree_node *node, int pos ) {
         node = node->next_sibling;
     }
 
+    if ( node->node_type == NODE_NONE )
+        return NULL;
+
     return node;
 }
 
