@@ -815,16 +815,51 @@ struct_declarator
 enum_specifier
     : ENUM IDENTIFIER '{' enumerator_list '}' {
 
-            // TODO
+            $$ = $4;
+            tree_node_push_front( $$, $2 );
+            tree_node_set_text_bounds( $$, $1, $5 );
+            $$->node_type = NODE_ENUM_SPECIFIER;
+            $$->node_subtype = NODE_EN_DEFINITION;
         }
-    | ENUM '{' enumerator_list '}'
-    | ENUM IDENTIFIER '{' enumerator_list ',' '}'
-    | ENUM '{' enumerator_list ',' '}'
-    | ENUM IDENTIFIER
+    | ENUM '{' enumerator_list '}' {
+
+            $$ = $3;
+            tree_node_push_front( $$, new_tree_node() );
+            tree_node_set_text_bounds( $$, $1, $4 );
+            $$->node_type = NODE_ENUM_SPECIFIER;
+            $$->node_subtype = NODE_EN_DEFINITION;
+        }
+    | ENUM IDENTIFIER '{' enumerator_list ',' '}' {
+
+            $$ = $4;
+            tree_node_push_front( $$, $2 );
+            tree_node_set_text_bounds( $$, $1, $6 );
+            $$->node_type = NODE_ENUM_SPECIFIER;
+            $$->node_subtype = NODE_EN_DEFINITION;
+        }
+    | ENUM '{' enumerator_list ',' '}' {
+
+            $$ = $3;
+            tree_node_push_front( $$, new_tree_node() );
+            tree_node_set_text_bounds( $$, $1, $5 );
+            $$->node_type = NODE_ENUM_SPECIFIER;
+            $$->node_subtype = NODE_EN_DEFINITION;
+        }
+    | ENUM IDENTIFIER {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $2 );
+            tree_node_set_text_bounds( $$, $1, NULL );
+            $$->node_type = NODE_ENUM_SPECIFIER;
+            $$->node_subtype = NODE_EN_DECLARATION;
+        }
     ;
 
 enumerator_list
-    : enumerator
+    : enumerator {
+
+            //
+        }
     | enumerator_list ',' enumerator
     ;
 
