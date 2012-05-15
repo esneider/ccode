@@ -858,24 +858,64 @@ enum_specifier
 enumerator_list
     : enumerator {
 
-            //
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
         }
-    | enumerator_list ',' enumerator
+    | enumerator_list ',' enumerator {
+
+            tree_node_push_back( $$, $3 );
+        }
     ;
 
 enumerator
-    : IDENTIFIER
-    | IDENTIFIER '=' constant_expression
+    : IDENTIFIER {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            // tree_node_set_child( $$, 1, new_tree_node() );
+            $$->node_type = NODE_ENUMERATOR;
+        }
+    | IDENTIFIER '=' constant_expression {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            tree_node_set_child( $$, 1, $3 );
+            $$->node_type = NODE_ENUMERATOR;
+        }
     ;
 
 type_qualifier
-    : CONST
-    | RESTRICT
-    | VOLATILE
+    : CONST {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_QU_TYPE;
+        }
+    | RESTRICT {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_QU_TYPE;
+        }
+    | VOLATILE {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_QU_TYPE;
+        }
     ;
 
 function_specifier
-    : INLINE
+    : INLINE {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_DECLARATION_SPECIFIER;
+            $$->node_subtype = NODE_SP_FUNCTION;
+        }
     ;
 
 declarator
