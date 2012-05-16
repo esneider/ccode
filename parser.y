@@ -919,32 +919,160 @@ function_specifier
     ;
 
 declarator
-    : pointer direct_declarator
-    | direct_declarator
+    : pointer direct_declarator {
+
+            /* careful here: direct_declarator is actually a list of them */
+            $$ = $2;
+            tree_node_push_front( $$, $1 );
+            $$->node_type = NODE_DECLARATOR;
+        }
+    | direct_declarator {
+
+            /* careful here: direct_declarator is actually a list of them */
+            $$ = $1;
+            $$->node_type = NODE_DECLARATOR;
+        }
     ;
 
 direct_declarator
-    : IDENTIFIER
-    | '(' declarator ')'
-    | direct_declarator '[' type_qualifier_list assignment_expression ']'
-    | direct_declarator '[' type_qualifier_list ']'
-    | direct_declarator '[' assignment_expression ']'
-    | direct_declarator '[' ']'
-    | direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-    | direct_declarator '[' STATIC assignment_expression ']'
-    | direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-    | direct_declarator '[' type_qualifier_list '*' ']'
-    | direct_declarator '[' '*' ']'
-    | direct_declarator '(' parameter_type_list ')'
-    | direct_declarator '(' identifier_list ')'
-    | direct_declarator '(' ')'
+    : IDENTIFIER {
+
+            $1->node_type = NODE_DIRECT_DECLARATOR;
+            $1->node_subtype = NODE_DD_IDENTIFIER;
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+        }
+    | '(' declarator ')' {
+
+            YYSTYPE node = new_tree_node();
+
+            tree_node_set_child( node, 0, $1 );
+            tree_node_set_text_bounds( node, $1, $3 );
+            node->node_type = NODE_DIRECT_DECLARATOR;
+            node->node_subtype = NODE_DD_DECLARATOR;
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+        }
+    | direct_declarator '[' type_qualifier_list assignment_expression ']' {
+
+            tree_node_push_front( $3, $4 );
+            tree_node_set_text_bounds( $3, $2, $5 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = NODE_DD_ARRAY;
+
+            tree_node_push_back( $$, $3 );
+        }
+    | direct_declarator '[' type_qualifier_list ']' {
+
+            tree_node_push_front( $3, new_tree_node() );
+            tree_node_set_text_bounds( $3, $2, $4 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = NODE_DD_ARRAY;
+
+            tree_node_push_back( $$, $3 );
+        }
+    | direct_declarator '[' assignment_expression ']' {
+
+            tree_node_set_text_bounds( $3, $2, $4 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = NODE_DD_ARRAY;
+
+            tree_node_push_back( $$, $3 );
+        }
+    | direct_declarator '[' ']' {
+
+            YYSTYPE node = new_tree_node();
+            tree_node_set_text_bounds( node, $2, $3 );
+            node->node_type = NODE_DIRECT_DECLARATOR;
+            node->node_subtype = NODE_DD_ARRAY;
+
+            tree_node_push_back( $$, node );
+        }
+    | direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' {
+
+            tree_node_push_front( $4, $5 );
+            tree_node_set_text_bounds( $4, $2, $6 );
+            $4->node_type = NODE_DIRECT_DECLARATOR;
+            $4->node_subtype = NODE_DD_STATIC_ARRAY;
+
+            tree_node_push_back( $$, $4 );
+        }
+    | direct_declarator '[' STATIC assignment_expression ']' {
+
+            tree_node_set_text_bounds( $4, $2, $5 );
+            $4->node_type = NODE_DIRECT_DECLARATOR;
+            $4->node_subtype = NODE_DD_STATIC_ARRAY;
+
+            tree_node_push_back( $$, $4 );
+        }
+    | direct_declarator '[' type_qualifier_list STATIC assignment_expression ']' {
+
+            tree_node_push_front( $3, $5 );
+            tree_node_set_text_bounds( $3, $2, $6 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = NODE_DD_STATIC_ARRAY;
+
+            tree_node_push_back( $$, $3 );
+        }
+    | direct_declarator '[' type_qualifier_list '*' ']' {
+
+            tree_node_set_text_bounds( $3, $2, $5 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = NODE_DD_STAR_ARRAY;
+
+            tree_node_push_back( $$, $3 );
+        }
+    | direct_declarator '[' '*' ']' {
+
+            YYSTYPE node = new_tree_node();
+            tree_node_set_text_bounds( node, $2, $4 );
+            node->node_type = NODE_DIRECT_DECLARATOR;
+            node->node_subtype = NODE_DD_STAR_ARRAY;
+
+            tree_node_push_back( $$, node );
+        }
+    | direct_declarator '(' parameter_type_list ')' {
+
+            tree_node_set_text_bounds( $3, $2, $4 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = (/* TODO */) ? NODE_DD_FUNCTION : NODE_DD_VA_ARG_FUNCTION;
+
+            tree_node_push_back( $$, $3 );
+        }
+    | direct_declarator '(' identifier_list ')' {
+
+            tree_node_set_text_bounds( $3, $2, $4 );
+            $3->node_type = NODE_DIRECT_DECLARATOR;
+            $3->node_subtype = NODE_DD_OLD_FUNCTION;
+        }
+    | direct_declarator '(' ')' {
+
+            YYSTYPE node = new_tree_node();
+            tree_node_set_text_bounds( node, $2, $3 );
+            node->node_type = NODE_DIRECT_DECLARATOR;
+            node->node_subtype = NODE_DD_OLD_FUNCTION;
+        }
     ;
 
 pointer
-    : '*' type_qualifier_list
-    | '*'
-    | '*' type_qualifier_list pointer
-    | '*' pointer
+    : '*' type_qualifier_list {
+
+            /* TODO */
+        }
+    | '*' {
+
+            /* TODO */
+        }
+    | '*' type_qualifier_list pointer {
+
+            /* TODO */
+        }
+    | '*' pointer {
+
+            /* TODO */
+        }
     ;
 
 type_qualifier_list

@@ -252,7 +252,7 @@ enum tree_node_type {
     NODE_DIRECT_DECLARATOR,
 
         NODE_DD_IDENTIFIER,
-        /* ( NODE_IDENTIFIER ) */
+        /* ( ) */
         NODE_DD_DECLARATOR,
         /* ( NODE_DECLARATOR ) */
         NODE_DD_ARRAY,
