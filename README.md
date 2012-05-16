@@ -27,4 +27,6 @@
  *  2hs (11/5/2012): finished defining AST nodes
  *  3hs (12/5/2012): refactored the lexer to use tree nodes; implemented some tree node utils
  *  3hs (13/5/2012): more tree node utils; started to build the syntax tree
- *  5hs (14/5/2012): expression's syntax tree; parse test
+ *  5hs (14/5/2012): expressions' syntax tree; parse test
+ *  2hs (16/5/2012): started declarations' syntax tree
+
