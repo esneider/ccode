@@ -1059,30 +1059,51 @@ direct_declarator
 pointer
     : '*' type_qualifier_list {
 
-            /* TODO */
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $2 );
+            tree_node_set_text_bounds( $$, $1, NULL );
+            $$->node_type = NODE_POINTER;
         }
     | '*' {
 
-            /* TODO */
-        }
-    | '*' type_qualifier_list pointer {
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, new_tree_node() );
+            tree_node_set_text_bounds( $$, $1, $1 );
+            $$->node_type = NODE_POINTER;
+       }
+    | pointer '*' type_qualifier_list {
 
-            /* TODO */
+            tree_node_push_back( $$, $3 );
         }
-    | '*' pointer {
+    | pointer '*' {
 
-            /* TODO */
+            tree_node_push_back( $$, new_tree_node() );
+            tree_node_set_text_bounds( $$, $2 );
         }
     ;
 
 type_qualifier_list
-    : type_qualifier
-    | type_qualifier_list type_qualifier
+    : type_qualifier {
+
+            $$ = new_tree_node();
+            tree_node_set_child( $$, 0, $1 );
+            $$->node_type = NODE_QUALIFIER_LIST;
+        }
+    | type_qualifier_list type_qualifier {
+
+            tree_node_push_back( $$, $2 );
+        }
     ;
 
 parameter_type_list
-    : parameter_list
-    | parameter_list ',' ELLIPSIS
+    : parameter_list {
+
+            /* TODO */
+        }
+    | parameter_list ',' ELLIPSIS {
+
+            /* TODO */
+        }
     ;
 
 parameter_list
