@@ -5,9 +5,9 @@
 #include "tree_node.h"
 
 
-struct tree_node *last_token = NULL;
+static struct tree_node *last_token = NULL;
 
-int line = 1, column = 0, buffer_pos = 0;
+static int line = 1, column = 0, buffer_pos = 0;
 
 
 static int proc_keyword ( int keyword );
@@ -378,6 +378,6 @@ static void proc_directive ( void ) {
 
 int yywrap ( void ) {
 
-    return 1;
+    return 0;
 }
 
