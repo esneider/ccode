@@ -165,13 +165,13 @@ enum tree_node_type {
     NODE_EXPRESSION,
 
         NODE_EX_CONSTANT,
-        /* ( ) */
+        /* ( NODE_CONSTANT ) */
         NODE_EX_IDENTIFIER,
-        /* ( ) */
+        /* ( NODE_IDENTIFIER ) */
         NODE_EX_STRING_LITERAL,
-        /* ( ) */
+        /* ( NODE_STRING_LITERAL ) */
         NODE_EX_EXPRESSION,
-        /* ( NODE_EX_EXPRESSION ) */
+        /* ( NODE_EXPRESSION ) */
         NODE_EX_ARRAY_SUBSCRIPTING,
         /* ( NODE_EXPRESSION , NODE_EXPRESSION )  */
         NODE_EX_FUNCTION_CALL,
