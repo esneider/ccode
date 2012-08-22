@@ -26,13 +26,15 @@ struct rule {
 
         int limits[2];
 
+        struct node *parent;
+
         struct component {
 
             int pos, number;
 
             enum { IGNORE, ABSOLUTE, PUSH_FRONT, PUSH_BACK, COPY } type;
 
-            struct node *child, *parent;
+            struct node *child;
 
             struct component *next;
 
@@ -47,7 +49,6 @@ static struct current {
 
     struct rule rule;
 
-    // TODO: handle this (necessary because of child nodes)
     struct node* node;
 
     struct component *component;
@@ -65,7 +66,7 @@ digit               [0-9]
 hex_digit           [0-9a-fA-F]
 whitespace          [ \t\v\r\f]
 
-char_sequence     ([^'\\\n]|\\[^\n])+
+char_sequence       ([^'\\\n]|\\[^\n])+
 
 hex_quad            {hex_digit}{4}
 universal_char_name (\\u{hex_quad}|\\U{hex_quad}{2})
@@ -82,6 +83,7 @@ identifier          {identifier_nondigit}({identifier_nondigit}|{digit})*
 
 
 %%
+
 
 <HEADER> {
     [^%\n]+           { move( true ); }
@@ -174,8 +176,6 @@ identifier          {identifier_nondigit}({identifier_nondigit}|{digit})*
 }
 
 
-
-
 %%
 
 
@@ -197,19 +197,35 @@ static inline void move ( bool print ) {
 }
 
 
+static void clear_node ( struct node *node ) {
+
+    if ( !node ) return;
+
+    memset( node, '\0', offsetof( struct node, parent ) );
+
+    for ( struct component *c = &node->component; !c || c->type != IGNORE; c = c->next ) {
+
+        clear_node( c->child );
+
+        memset( c, '\0', offsetof( struct component, child ) );
+    }
+}
+
+
 static void init_node ( void ) {
 
-    memset( &current.rule.node, '\0', sizeof( struct node ) );
-
+    current.node      = &current.rule.node;
     current.component = &current.rule.node.component;
+
+    clear_node( current.node );
 }
 
 
 static void init_rule ( void ) {
 
-    memset( &current.rule.type, '\0', sizeof( struct type ) );
-
     current.type = &current.rule.type;
+
+    memset( current.type, '\0', sizeof( struct type ) );
 
     init_node();
 }
@@ -219,20 +235,16 @@ static void add_component ( void ) {
 
     current.component->pos++;
 
-    if ( current. )
+    if ( current.component->type == IGNORE ) return;
 
     if ( current.component->next == NULL ) {
 
-        current.component->next = malloc( sizeof( struct component ) );
+        current.component->next = calloc( sizeof( struct component ) );
 
         if ( !current.component->next ) {
             /* memory error */
         }
     }
-
-//  TODO: be carefull with child and next pointers
-
-//    memset( current.component->next, '\0', sizeof( struct component ) );
 
     current.component->next->pos = current.component->pos;
     current.component = current.component->next;
@@ -245,9 +257,18 @@ static void add_child ( void ) {
 
     if ( current.component->child == NULL ) {
 
-//     TODO
-//        current.component-
+        current.component->child = calloc( sizeof( struct node ) );
+
+        if ( !current.component->child ) {
+            /* memory error */
+        }
+
+        current.component->child->father = current.component;
     }
+
+    current.component->child->component.pos = current.component->pos;
+    current.node      = current.component->child;
+    current.component = &current.component->child->component;
 }
 
 
