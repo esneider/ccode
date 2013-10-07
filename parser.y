@@ -28,1080 +28,301 @@
 
 %%
 
-primary_expression
-    : IDENTIFIER {
-
-            $$ = $1;
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_IDENTIFIER;
-        }
-    | CONSTANT {
-
-            $$ = $1;
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_CONSTANT;
-        }
-    | STRING_LITERAL {
-
-            $$ = $1;
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_STRING_LITERAL;
-        }
-    | '(' expression ')' {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $2 );
-            tree_node_set_text_bounds( $$, $1, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_EXPRESSION;
-        }
+primary_expression [EXPRESSION]
+    : [1]IDENTIFIER         [:IDENTIFIER]
+    | [1]CONSTANT           [:CONSTANT]
+    | [1]STRING_LITERAL     [:STRING_LITERAL]
+    | '(' [1]expression ')' [:EXPRESSION]
     ;
 
-postfix_expression
-    : primary_expression
-    | postfix_expression '[' expression ']' {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            tree_node_set_text_bounds( $$, NULL, $4 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_ARRAY_SUBSCRIPTING;
-        }
-    | postfix_expression '(' argument_expression_list ')' {
-
-            $$ = $3;
-            tree_node_push_front( $$, $1 );
-            tree_node_set_text_bounds( $$, NULL, $4 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_FUNCTION_CALL;
-        }
-    | postfix_expression '(' ')' {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_text_bounds( $$, NULL, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_FUNCTION_CALL;
-        }
-    | postfix_expression '.' IDENTIFIER {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_MEMBER;
-        }
-    | postfix_expression POINTER IDENTIFIER {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_POINTER_MEMBER;
-        }
-    | postfix_expression INCREMENT {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_UNARY_POSTFIX;
-        }
-    | postfix_expression DECREMENT {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_UNARY_POSTFIX;
-        }
-    | '(' type_name ')' '{' initializer_list '}' {
-
-            $$ = $5;
-            tree_node_push_front( $$, $2 );
-            tree_node_set_text_bounds( $$, $1, $6 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_COMPOUND_LITERAL;
-        }
-    | '(' type_name ')' '{' initializer_list ',' '}' {
-
-            $$ = $5;
-            tree_node_push_front( $$, $2 );
-            tree_node_set_text_bounds( $$, $1, $7 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_COMPOUND_LITERAL;
-        }
-
+postfix_expression [EXPRESSION]
+    : [=]primary_expression
+    | [1]postfix_expression '[' [2]expression ']'               [:ARRAY_SUBSCRIPTING]
+    | [<]postfix_expression '(' [=]argument_expression_list ')' [:FUNCTION_CALL]
+    | [1]postfix_expression '(' ')'                             [:FUNCTION_CALL]
+    | [1]postfix_expression '.' [2]IDENTIFIER                   [:MEMBER]
+    | [1]postfix_expression POINTER [2]IDENTIFIER               [:POINTER_MEMBER]
+    | [1]postfix_expression [2]INCREMENT                        [:UNARY_POSTFIX]
+    | [1]postfix_expression [2]DECREMENT                        [:UNARY_POSTFIX]
+    | '(' [<]type_name ')' '{' [=]initializer_list '}'          [:COMPOUND_LITERAL]
+    | '(' [<]type_name ')' '{' [=]initializer_list ',' '}'      [:COMPOUND_LITERAL]
     ;
 
 argument_expression_list
-    : assignment_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | argument_expression_list ',' assignment_expression {
-
-            tree_node_push_back( $$, $3 );
-        }
+    : [1]assignment_expression
+    | [=]argument_expression_list ',' [>]assignment_expression
     ;
 
-unary_expression
-    : postfix_expression
-    | INCREMENT unary_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_UNARY_PREFIX;
-        }
-    | DECREMENT unary_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_UNARY_PREFIX;
-        }
-    | unary_operator cast_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_UNARY_PREFIX;
-        }
-    | SIZEOF unary_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $2 );
-            tree_node_set_text_bounds( $$, $1, NULL );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_SIZEOF_EXPRESSION;
-        }
-    | SIZEOF '(' type_name ')' {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $2 );
-            tree_node_set_text_bounds( $$, $1, NULL );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_SIZEOF_TYPE_NAME;
-        }
+unary_expression [EXPRESSION]
+    : [=]postfix_expression
+    | [1]INCREMENT [2]unary_expression     [:UNARY_PREFIX]
+    | [1]DECREMENT [2]unary_expression     [:UNARY_PREFIX]
+    | [1]unary_operator [2]cast_expression [:UNARY_PREFIX]
+    | SIZEOF [1]unary_expression           [:SIZEOF_EXPRESSION]
+    | SIZEOF '(' [1]type_name ')'          [:SIZEOF_TYPE_NAME]
     ;
 
 unary_operator
-    : '&'
-    | '*'
-    | '+'
-    | '-'
-    | '~'
-    | '!'
+    : [=]'&'
+    | [=]'*'
+    | [=]'+'
+    | [=]'-'
+    | [=]'~'
+    | [=]'!'
     ;
 
-cast_expression
-    : unary_expression
-    | '(' type_name ')' cast_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $2 );
-            tree_node_set_child( $$, 1, $4 );
-            tree_node_set_text_bounds( $$, $1, NULL );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_CAST;
-        }
+cast_expression [EXPRESSION]
+    : [=]unary_expression
+    | '(' [1]type_name ')' [2]cast_expression [:CAST]
     ;
 
-multiplicative_expression
-    : cast_expression
-    | multiplicative_expression '*' cast_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | multiplicative_expression '/' cast_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | multiplicative_expression '%' cast_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+multiplicative_expression [EXPRESSION]
+    : [=]cast_expression
+    | [1]multiplicative_expression [2]'*' [3]cast_expression [:BINARY]
+    | [1]multiplicative_expression [2]'/' [3]cast_expression [:BINARY]
+    | [1]multiplicative_expression [2]'%' [3]cast_expression [:BINARY]
     ;
 
-additive_expression
-    : multiplicative_expression
-    | additive_expression '+' multiplicative_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | additive_expression '-' multiplicative_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+additive_expression [EXPRESSION]
+    : [=]multiplicative_expression
+    | [1]additive_expression [2]'+' [3]multiplicative_expression [:BINARY]
+    | [1]additive_expression [2]'-' [3]multiplicative_expression [:BINARY]
     ;
 
-shift_expression
-    : additive_expression
-    | shift_expression LSHIFT additive_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | shift_expression RSHIFT additive_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+shift_expression [EXPRESSION]
+    : [=]additive_expression
+    | [1]shift_expression [2]LSHIFT [3]additive_expression [:BINARY]
+    | [1]shift_expression [2]RSHIFT [3]additive_expression [:BINARY]
     ;
 
-relational_expression
-    : shift_expression
-    | relational_expression '<' shift_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | relational_expression '>' shift_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | relational_expression LESS_EQUAL shift_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | relational_expression MORE_EQUAL shift_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+relational_expression [EXPRESSION]
+    : [=]shift_expression
+    | [1]relational_expression [2]'<' [3]shift_expression        [:BINARY]
+    | [1]relational_expression [2]'>' [3]shift_expression        [:BINARY]
+    | [1]relational_expression [2]LESS_EQUAL [3]shift_expression [:BINARY]
+    | [1]relational_expression [2]MORE_EQUAL [3]shift_expression [:BINARY]
     ;
 
-equality_expression
-    : relational_expression
-    | equality_expression EQUAL relational_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
-    | equality_expression NOT_EQUAL relational_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+equality_expression [EXPRESSION]
+    : [=]relational_expression
+    | [1]equality_expression [2]EQUAL [3]relational_expression     [:BINARY]
+    | [1]equality_expression [2]NOT_EQUAL [3]relational_expression [:BINARY]
     ;
 
-AND_expression
-    : equality_expression
-    | AND_expression '&' equality_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+AND_expression [EXPRESSION]
+    : [=]equality_expression
+    | [1]AND_expression [2]'&' [3]equality_expression [:BINARY]
     ;
 
-exclusive_OR_expression
-    : AND_expression
-    | exclusive_OR_expression '^' AND_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+exclusive_OR_expression [EXPRESSION]
+    : [=]AND_expression
+    | [1]exclusive_OR_expression [2]'^' [3]AND_expression [:BINARY]
     ;
 
-inclusive_OR_expression
-    : exclusive_OR_expression
-    | inclusive_OR_expression '|' exclusive_OR_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+inclusive_OR_expression [EXPRESSION]
+    : [=]exclusive_OR_expression
+    | [1]inclusive_OR_expression [2]'|' [3]exclusive_OR_expression [:BINARY]
     ;
 
-logical_AND_expression
-    : inclusive_OR_expression
-    | logical_AND_expression LOGICAL_AND inclusive_OR_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+logical_AND_expression [EXPRESSION]
+    : [=]inclusive_OR_expression
+    | [1]logical_AND_expression [2]LOGICAL_AND [3]inclusive_OR_expression [:BINARY]
     ;
 
-logical_OR_expression
-    : logical_AND_expression
-    | logical_OR_expression LOGICAL_OR logical_AND_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_BINARY;
-        }
+logical_OR_expression [EXPRESSION]
+    : [=]logical_AND_expression
+    | [1]logical_OR_expression [2]LOGICAL_OR [3]logical_AND_expression [:BINARY]
     ;
 
-conditional_expression
-    : logical_OR_expression
-    | logical_OR_expression '?' expression ':' conditional_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            tree_node_set_child( $$, 2, $5 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_CONDITIONAL;
-        }
+conditional_expression [EXPRESSION]
+    : [=]logical_OR_expression
+    | [1]logical_OR_expression '?' [2]expression ':' [3]conditional_expression [:CONDITIONAL]
     ;
 
-assignment_expression
-    : conditional_expression
-    | unary_expression assignment_operator assignment_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            tree_node_set_child( $$, 2, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_ASSIGNMENT;
-        }
+assignment_expression [EXPRESSION]
+    : [=]conditional_expression
+    | [1]unary_expression [2]assignment_operator [3]assignment_expression [:ASSIGNMENT]
     ;
 
 assignment_operator
-    : '='
-    | MUL_ASSIGN
-    | DIV_ASSIGN
-    | MOD_ASSIGN
-    | ADD_ASSIGN
-    | SUB_ASSIGN
-    | LSHIFT_ASSIGN
-    | RSHIFT_ASSIGN
-    | AND_ASSIGN
-    | XOR_ASSIGN
-    | OR_ASSIGN
+    : [=]'='
+    | [=]MUL_ASSIGN
+    | [=]DIV_ASSIGN
+    | [=]MOD_ASSIGN
+    | [=]ADD_ASSIGN
+    | [=]SUB_ASSIGN
+    | [=]LSHIFT_ASSIGN
+    | [=]RSHIFT_ASSIGN
+    | [=]AND_ASSIGN
+    | [=]XOR_ASSIGN
+    | [=]OR_ASSIGN
     ;
 
-expression
-    : assignment_expression
-    | expression ',' assignment_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            $$->node_type = NODE_EXPRESSION;
-            $$->node_subtype = NODE_EX_COMMA;
-        }
+expression [EXPRESSION]
+    : [=]assignment_expression
+    | [1]expression ',' [2]assignment_expression [:COMMA]
     ;
 
 constant_expression
-    : conditional_expression
+    : [=]conditional_expression
     ;
 
-declaration
-    : declaration_specifiers init_declarator_list ';' {
-
-            $$ = $2;
-            tree_node_push_front( $$, $1 );
-            tree_node_set_text_bounds( $$, NULL, $3 );
-            $$->node_type = NODE_DECLARATION;
-        }
-    | declaration_specifiers ';' {
-
-            $$ = $1;
-            tree_node_set_text_bounds( $$, NULL, $2 );
-            $$->node_type = NODE_DECLARATION;
-        }
+declaration [DECLARATION]
+    : [<]declaration_specifiers [=]init_declarator_list ';'
+    | [1]declaration_specifiers ';'
     ;
 
-declaration_specifiers
-    : declaration_specifiers storage_class_specifier {
-
-            tree_node_push_back( $$, $2 );
-        }
-    | storage_class_specifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
-        }
-    | declaration_specifiers type_specifier {
-
-            tree_node_push_back( $$, $2 );
-        }
-    | type_specifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
-        }
-    | declaration_specifiers type_qualifier {
-
-            tree_node_push_back( $$, $2 );
-        }
-    | type_qualifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
-        }
-    | declaration_specifiers function_specifier {
-
-            tree_node_push_back( $$, $2 );
-        }
-    | function_specifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
-        }
+declaration_specifiers [DECLARATION_SPECIFIER_LIST]
+    : [=]declaration_specifiers [>]storage_class_specifier
+    | [1]storage_class_specifier
+    | [=]declaration_specifiers [>]type_specifier
+    | [1]type_specifier
+    | [=]declaration_specifiers [>]type_qualifier
+    | [1]type_qualifier
+    | [=]declaration_specifiers [>]function_specifier
+    | [1]function_specifier
     ;
 
 init_declarator_list
-    : init_declarator {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | init_declarator_list ',' init_declarator {
-
-            tree_node_push_back( $$, $3 );
-        }
+    : [1]init_declarator
+    | [=]init_declarator_list ',' [>]init_declarator
     ;
 
-init_declarator
-    : declarator {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            // tree_node_set_child( $$, 1, new_tree_node() );
-            $$->node_type = NODE_INIT_DECLARATOR;
-        }
-    | declarator '=' initializer {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_INIT_DECLARATOR;
-        }
+init_declarator [INIT_DECLARATOR]
+    : [1]declarator                    [:UNINITIALIZED]
+    | [1]declarator '=' [2]initializer [:INITIALIZED]
     ;
 
-storage_class_specifier
-    : TYPEDEF {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_STORAGE_CLASS;
-        }
-    | EXTERN {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_STORAGE_CLASS;
-        }
-    | STATIC {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_STORAGE_CLASS;
-        }
-    | AUTO {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_STORAGE_CLASS;
-        }
-    | REGISTER {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_STORAGE_CLASS;
-        }
+storage_class_specifier [DECLARATION_SPECIFIER:STORAGE_CLASS]
+    : [1]TYPEDEF
+    | [1]EXTERN
+    | [1]STATIC
+    | [1]AUTO
+    | [1]REGISTER
     ;
 
-type_specifier
-    : VOID {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | CHAR {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | SHORT {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | INT {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | LONG {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | FLOAT {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | DOUBLE {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | SIGNED {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | UNSIGNED {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | _BOOL {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | _COMPLEX {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | struct_or_union_specifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | enum_specifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
-    | typedef_name {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_TYPE;
-        }
+type_specifier [DECLARATION_SPECIFIER:SP_TYPE]
+    : [1]VOID
+    | [1]CHAR
+    | [1]SHORT
+    | [1]INT
+    | [1]LONG
+    | [1]FLOAT
+    | [1]DOUBLE
+    | [1]SIGNED
+    | [1]UNSIGNED
+    | [1]_BOOL
+    | [1]_COMPLEX
+    | [1]struct_or_union_specifier
+    | [1]enum_specifier
+    | [1]typedef_name
     ;
 
-struct_or_union_specifier
-    : struct_or_union IDENTIFIER '{' struct_declaration_list '}' {
-
-            $$ = $4;
-            tree_node_push_front( $$, $2 );
-            tree_node_push_front( $$, $1 );
-            tree_node_set_text_bounds( $$, NULL, $5 );
-            $$->node_type = NODE_STRUCT_OR_UNION_SPECIFIER;
-            $$->node_subtype = NODE_SU_DEFINITION;
-        }
-    | struct_or_union '{' struct_declaration_list '}' {
-
-            $$ = $3;
-            tree_node_push_front( $$, new_tree_node() );
-            tree_node_push_front( $$, $1 );
-            tree_node_set_text_bounds( $$, NULL, $4 );
-            $$->node_type = NODE_STRUCT_OR_UNION_SPECIFIER;
-            $$->node_subtype = NODE_SU_DEFINITION;
-        }
-    | struct_or_union IDENTIFIER {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_STRUCT_OR_UNION_SPECIFIER;
-            $$->node_subtype = NODE_SU_DECLARATION;
-        }
+struct_or_union_specifier [STRUCT_OR_UNION_SPECIFIER]
+    : [<2]struct_or_union [<1]IDENTIFIER '{' [=]struct_declaration_list '}' [:DEFINITION]
+    | [<2]struct_or_union [<1][+][-] '{' [=]struct_declaration_list '}'     [:DEFINITION]
+    | [1]struct_or_union [2]IDENTIFIER                                      [:DECLARATION]
     ;
 
 struct_or_union
-    : STRUCT
-    | UNION
+    : [=]STRUCT
+    | [=]UNION
     ;
 
 struct_declaration_list
-    : struct_declaration {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | struct_declaration_list struct_declaration {
-
-            tree_node_push_back( $$, $2 );
-        }
+    : [1]struct_declaration
+    | [=]struct_declaration_list [>]struct_declaration
     ;
 
-struct_declaration
-    : specifier_qualifier_list struct_declarator_list ';' {
-
-            $$ = $2;
-            tree_node_push_front( $$, $1 );
-            tree_node_set_text_bounds( $$, NULL, $3 );
-            $$->node_type = NODE_STRUCT_DECLARATION;
-        }
+struct_declaration [STRUCT_DECLARATION]
+    : [<]specifier_qualifier_list [=]struct_declarator_list ';'
     ;
 
-specifier_qualifier_list
-    : specifier_qualifier_list type_specifier {
-
-            tree_node_push_back( $$, $2 );
-        }
-    | type_specifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
-        }
-    | specifier_qualifier_list type_qualifier {
-
-            tree_node_push_back( $$, $2 );
-        }
-    | type_qualifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER_LIST;
-        }
+specifier_qualifier_list [DECLARATION_SPECIFIER_LIST]
+    : [=]specifier_qualifier_list [>]type_specifier
+    | [1]type_specifier
+    | [=]specifier_qualifier_list [>]type_qualifier
+    | [1]type_qualifier
     ;
 
 struct_declarator_list
-    : struct_declarator {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | struct_declarator_list ',' struct_declarator {
-
-            tree_node_push_back( $$, $3 );
-        }
+    : [1]struct_declarator
+    | [=]struct_declarator_list ',' [>]struct_declarator
     ;
 
-struct_declarator
-    : declarator {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            // tree_node_set_child( $$, 1, new_tree_node() );
-            $$->node_type = NODE_STRUCT_DECLARATOR;
-        }
-    | declarator ':' constant_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            $$->node_type = NODE_STRUCT_DECLARATOR;
-        }
-    | ':' constant_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 1, $2 );
-            $$->node_type = NODE_STRUCT_DECLARATOR;
-        }
+struct_declarator [STRUCT_DECLARATOR]
+    : [1]declarator
+    | [1]declarator ':' [2]constant_expression
+    | ':' [2]constant_expression
     ;
 
-enum_specifier
-    : ENUM IDENTIFIER '{' enumerator_list '}' {
-
-            $$ = $4;
-            tree_node_push_front( $$, $2 );
-            tree_node_set_text_bounds( $$, $1, $5 );
-            $$->node_type = NODE_ENUM_SPECIFIER;
-            $$->node_subtype = NODE_EN_DEFINITION;
-        }
-    | ENUM '{' enumerator_list '}' {
-
-            $$ = $3;
-            tree_node_push_front( $$, new_tree_node() );
-            tree_node_set_text_bounds( $$, $1, $4 );
-            $$->node_type = NODE_ENUM_SPECIFIER;
-            $$->node_subtype = NODE_EN_DEFINITION;
-        }
-    | ENUM IDENTIFIER '{' enumerator_list ',' '}' {
-
-            $$ = $4;
-            tree_node_push_front( $$, $2 );
-            tree_node_set_text_bounds( $$, $1, $6 );
-            $$->node_type = NODE_ENUM_SPECIFIER;
-            $$->node_subtype = NODE_EN_DEFINITION;
-        }
-    | ENUM '{' enumerator_list ',' '}' {
-
-            $$ = $3;
-            tree_node_push_front( $$, new_tree_node() );
-            tree_node_set_text_bounds( $$, $1, $5 );
-            $$->node_type = NODE_ENUM_SPECIFIER;
-            $$->node_subtype = NODE_EN_DEFINITION;
-        }
-    | ENUM IDENTIFIER {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $2 );
-            tree_node_set_text_bounds( $$, $1, NULL );
-            $$->node_type = NODE_ENUM_SPECIFIER;
-            $$->node_subtype = NODE_EN_DECLARATION;
-        }
+enum_specifier [ENUM_SPECIFIER]
+    : ENUM [<]IDENTIFIER '{' [=]enumerator_list '}'     [:DEFINITION]
+    | ENUM '{' [=]enumerator_list '}' [<][+][-]         [:DEFINITION]
+    | ENUM [<]IDENTIFIER '{' [=]enumerator_list ',' '}' [:DEFINITION]
+    | ENUM '{' [=]enumerator_list ',' '}' [<][+][-]     [:DEFINITION]
+    | ENUM [1]IDENTIFIER                                [:DECLARATION]
     ;
 
 enumerator_list
-    : enumerator {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | enumerator_list ',' enumerator {
-
-            tree_node_push_back( $$, $3 );
-        }
+    : [1]enumerator
+    | [=]enumerator_list ',' [>]enumerator
     ;
 
-enumerator
-    : IDENTIFIER {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            // tree_node_set_child( $$, 1, new_tree_node() );
-            $$->node_type = NODE_ENUMERATOR;
-        }
-    | IDENTIFIER '=' constant_expression {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            tree_node_set_child( $$, 1, $3 );
-            $$->node_type = NODE_ENUMERATOR;
-        }
+enumerator [ENUMERATOR]
+    : [1]IDENTIFIER
+    | [1]IDENTIFIER '=' [2]constant_expression
     ;
 
-type_qualifier
-    : CONST {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_QU_TYPE;
-        }
-    | RESTRICT {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_QU_TYPE;
-        }
-    | VOLATILE {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_QU_TYPE;
-        }
+type_qualifier [DECLARATION_SPECIFIER:QU_TYPE]
+    : [1]CONST
+    | [1]RESTRICT
+    | [1]VOLATILE
     ;
 
-function_specifier
-    : INLINE {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_DECLARATION_SPECIFIER;
-            $$->node_subtype = NODE_SP_FUNCTION;
-        }
+function_specifier [DECLARATION_SPECIFIER:SP_FUNCTION]
+    : [1]INLINE
     ;
 
-declarator
-    : pointer direct_declarator {
-
-            /* careful here: direct_declarator is actually a list of them */
-            $$ = $2;
-            tree_node_push_front( $$, $1 );
-            $$->node_type = NODE_DECLARATOR;
-        }
-    | direct_declarator {
-
-            /* careful here: direct_declarator is actually a list of them */
-            $$ = $1;
-            $$->node_type = NODE_DECLARATOR;
-        }
+declarator [DECLARATOR]
+    : [<]pointer [=]direct_declarator
+    | [=]direct_declarator
     ;
 
 direct_declarator
-    : IDENTIFIER {
-
-            $1->node_type = NODE_DIRECT_DECLARATOR;
-            $1->node_subtype = NODE_DD_IDENTIFIER;
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | '(' declarator ')' {
-
-            YYSTYPE node = new_tree_node();
-
-            tree_node_set_child( node, 0, $1 );
-            tree_node_set_text_bounds( node, $1, $3 );
-            node->node_type = NODE_DIRECT_DECLARATOR;
-            node->node_subtype = NODE_DD_DECLARATOR;
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-        }
-    | direct_declarator '[' type_qualifier_list assignment_expression ']' {
-
-            tree_node_push_front( $3, $4 );
-            tree_node_set_text_bounds( $3, $2, $5 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = NODE_DD_ARRAY;
-
-            tree_node_push_back( $$, $3 );
-        }
-    | direct_declarator '[' type_qualifier_list ']' {
-
-            tree_node_push_front( $3, new_tree_node() );
-            tree_node_set_text_bounds( $3, $2, $4 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = NODE_DD_ARRAY;
-
-            tree_node_push_back( $$, $3 );
-        }
-    | direct_declarator '[' assignment_expression ']' {
-
-            tree_node_set_text_bounds( $3, $2, $4 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = NODE_DD_ARRAY;
-
-            tree_node_push_back( $$, $3 );
-        }
-    | direct_declarator '[' ']' {
-
-            YYSTYPE node = new_tree_node();
-            tree_node_set_text_bounds( node, $2, $3 );
-            node->node_type = NODE_DIRECT_DECLARATOR;
-            node->node_subtype = NODE_DD_ARRAY;
-
-            tree_node_push_back( $$, node );
-        }
-    | direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' {
-
-            tree_node_push_front( $4, $5 );
-            tree_node_set_text_bounds( $4, $2, $6 );
-            $4->node_type = NODE_DIRECT_DECLARATOR;
-            $4->node_subtype = NODE_DD_STATIC_ARRAY;
-
-            tree_node_push_back( $$, $4 );
-        }
-    | direct_declarator '[' STATIC assignment_expression ']' {
-
-            tree_node_set_text_bounds( $4, $2, $5 );
-            $4->node_type = NODE_DIRECT_DECLARATOR;
-            $4->node_subtype = NODE_DD_STATIC_ARRAY;
-
-            tree_node_push_back( $$, $4 );
-        }
-    | direct_declarator '[' type_qualifier_list STATIC assignment_expression ']' {
-
-            tree_node_push_front( $3, $5 );
-            tree_node_set_text_bounds( $3, $2, $6 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = NODE_DD_STATIC_ARRAY;
-
-            tree_node_push_back( $$, $3 );
-        }
-    | direct_declarator '[' type_qualifier_list '*' ']' {
-
-            tree_node_set_text_bounds( $3, $2, $5 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = NODE_DD_STAR_ARRAY;
-
-            tree_node_push_back( $$, $3 );
-        }
-    | direct_declarator '[' '*' ']' {
-
-            YYSTYPE node = new_tree_node();
-            tree_node_set_text_bounds( node, $2, $4 );
-            node->node_type = NODE_DIRECT_DECLARATOR;
-            node->node_subtype = NODE_DD_STAR_ARRAY;
-
-            tree_node_push_back( $$, node );
-        }
-    | direct_declarator '(' parameter_type_list ')' {
-
-            tree_node_set_text_bounds( $3, $2, $4 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = (/* TODO */) ? NODE_DD_FUNCTION : NODE_DD_VA_ARG_FUNCTION;
-
-            tree_node_push_back( $$, $3 );
-        }
-    | direct_declarator '(' identifier_list ')' {
-
-            tree_node_set_text_bounds( $3, $2, $4 );
-            $3->node_type = NODE_DIRECT_DECLARATOR;
-            $3->node_subtype = NODE_DD_OLD_FUNCTION;
-        }
-    | direct_declarator '(' ')' {
-
-            YYSTYPE node = new_tree_node();
-            tree_node_set_text_bounds( node, $2, $3 );
-            node->node_type = NODE_DIRECT_DECLARATOR;
-            node->node_subtype = NODE_DD_OLD_FUNCTION;
-        }
+    : [1][DIRECT_DECLARATOR:IDENTIFIER]IDENTIFIER
+    | [1][+] '(' [1][DIRECT_DECLARATOR:DECLARATOR]declarator ')' [-]
+    | [=]direct_declarator [>][+] '[' [=]type_qualifier_list [<]assignment_expression ']' [DIRECT_DECLARATOR:ARRAY][-]
+    | [=]direct_declarator [>][+] '[' [=]type_qualifier_list [<][+][-] ']' [DIRECT_DECLARATOR:ARRAY][-]
+    | [=]direct_declarator [>][+] '[' [=]assignment_expression ']' [DIRECT_DECLARATOR:ARRAY][-]
+    | [=]direct_declarator [>][+] '[' ']' [DIRECT_DECLARATOR:ARRAY][-]
+    | [=]direct_declarator [>][+] '[' STATIC [=]type_qualifier_list [<]assignment_expression ']' [DIRECT_DECLARATOR:STATIC_ARRAY][-]
+    | [=]direct_declarator [>][+] '[' STATIC [=]assignment_expression ']' [DIRECT_DECLARATOR:STATIC_ARRAY][-]
+    | [=]direct_declarator [>][+] '[' [=]type_qualifier_list STATIC [<]assignment_expression ']' [DIRECT_DECLARATOR:STATIC_ARRAY][-]
+    | [=]direct_declarator [>][+] '[' [=]type_qualifier_list '*' ']' [DIRECT_DECLARATOR:STAR_ARRAY][-]
+    | [=]direct_declarator [>][+] '[' '*' ']' [DIRECT_DECLARATOR:STAR_ARRAY][-]
+    | [=]direct_declarator [>][+] '(' [=]parameter_type_list ')' [DIRECT_DECLARATOR:FUNCTION][-]
+    | [=]direct_declarator [>][+] '(' [=]identifier_list ')' [DIRECT_DECLARATOR:OLD_FUNCTION][-]
+    | [=]direct_declarator [>][+] '(' ')' [DIRECT_DECLARATOR:OLD_FUNCTION][-]
     ;
 
-pointer
-    : '*' type_qualifier_list {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $2 );
-            tree_node_set_text_bounds( $$, $1, NULL );
-            $$->node_type = NODE_POINTER;
-        }
-    | '*' {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, new_tree_node() );
-            tree_node_set_text_bounds( $$, $1, $1 );
-            $$->node_type = NODE_POINTER;
-       }
-    | pointer '*' type_qualifier_list {
-
-            tree_node_push_back( $$, $3 );
-        }
-    | pointer '*' {
-
-            tree_node_push_back( $$, new_tree_node() );
-            tree_node_set_text_bounds( $$, $2 );
-        }
+pointer [POINTER]
+    : '*' [1]type_qualifier_list
+    | '*' [1][+][-]
+    | [=]pointer '*' [>]type_qualifier_list
+    | [=]pointer [>][+] '*' [-]
     ;
 
-type_qualifier_list
-    : type_qualifier {
-
-            $$ = new_tree_node();
-            tree_node_set_child( $$, 0, $1 );
-            $$->node_type = NODE_QUALIFIER_LIST;
-        }
-    | type_qualifier_list type_qualifier {
-
-            tree_node_push_back( $$, $2 );
-        }
+type_qualifier_list [QUALIFIER_LIST]
+    : [1]type_qualifier
+    | [=]type_qualifier_list [>]type_qualifier
     ;
 
 parameter_type_list
     : parameter_list {
-
             /* TODO */
         }
     | parameter_list ',' ELLIPSIS {
-
             /* TODO */
         }
     ;

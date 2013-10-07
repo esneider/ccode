@@ -3,7 +3,9 @@
 
 
 #include <stddef.h>
-// #include "parser.tab.h"
+#include "parser.tab.h"
+
+#define YYSTYPE struct ast_node*
 
 
 struct ast_node {

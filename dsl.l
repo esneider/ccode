@@ -1,3 +1,22 @@
+/**
+ * These go before the parser token:
+ *
+ * [number] - Insert child in position 'number'.
+ * [<] - Push child front.
+ * [>] - Push child back.
+ * [=] - Use this node instead of creating a new one.
+ *
+ * These go anywhere in the parser expression:
+ *
+ * [+] - Create a new node with the contents until the next [-].
+ * [-] - End new node context
+ *
+ * These go at the end of a parser expression:
+ *
+ * [identifier] - Set node type to 'identifier'
+ * [:identifier] - Set node subtype to 'identifier'
+ */
+
 %{
 
 #include <stdio.h>
@@ -8,17 +27,19 @@
 static int line = 1, column = 0, buffer_pos = 0;
 
 
-#define STR_MAX 50
+#define STR_MAX 100
 
 
-struct rule {
+static struct type {
 
-    struct type {
+    char type   [ STR_MAX + 1 ];
+    char subtype[ STR_MAX + 1 ];
+};
 
-        char type[ STR_MAX + 1 ];
-        char subtype[ STR_MAX + 1 ];
 
-    } type;
+static struct rule {
+
+    struct type type;
 
     static struct node {
 
@@ -28,7 +49,7 @@ struct rule {
 
         struct node *parent;
 
-        struct component {
+        static struct component {
 
             int pos, number;
 
@@ -41,7 +62,6 @@ struct rule {
         } component;
 
     } node;
-
 };
 
 
@@ -75,7 +95,7 @@ identifier_nondigit ({nondigit}|{universal_char_name})
 identifier          {identifier_nondigit}({identifier_nondigit}|{digit})*
 
 
-%x HEADER HEADER_CODE BODY TAIL LINE_COMMENT COMMENT RULE TYPE SUBTYPE COMPONENTS MODIFIERS
+%x HEADER HEADER_CODE BODY TAIL LINE_COMMENT COMMENT RULE TYPE MID_TYPE SUBTYPE COMPONENTS MODIFIERS CLOSE_MOD
 %start HEADER
 
 
@@ -115,63 +135,78 @@ identifier          {identifier_nondigit}({identifier_nondigit}|{digit})*
     "%%"              { move( true ); BEGIN( TAIL ); }
     {identifier}      { move( true ); init_rule(); BEGIN( RULE ); }
     {whitespace}+     { move( true ); }
+    "\n"              { move( true ); }
     .                 { move( true ); }
 }
 
 <TAIL> {
-    .+                { move( true ); }
     <<EOF>>           { return 0; }
+    .+                { move( true ); }
 }
 
 <RULE> {
-    {whitespace}+     { move( false ); }
-    "\n"              { move( false ); }
-    "["               { move( false ); yy_push_state( TYPE ); }
-    ":"               { printf( "\n\t:" ); move( false ); BEGIN( COMPONENTS ); }
+    {whitespace}+     { move( true ); }
+    "\n"              { move( true ); }
+    "["               { printf( "/*" ); move( true ); yy_push_state( TYPE ); }
+    ":"               { move( true ); current.type = &current.node->type; BEGIN( COMPONENTS ); }
     .                 { /* error */ }
 }
 
 <TYPE> {
-    {whitespace}+     { move( false ); }
-    {identifier}      { move( true ); strncpy( current.type->type, yytext, STR_MAX); }
-    ":"               { move( false ); BEGIN( SUBTYPE ); }
-    "]"               { move( false ); yy_pop_state(); }
-    "\n"              { move( false ); }
+    {whitespace}+     { move( true ); }
+    {identifier}      { move( true ); strncpy( current.type->type, yytext, STR_MAX); BEGIN( MID_TYPE ); }
+    ":"               { move( true ); BEGIN( SUBTYPE ); }
+    "\n"              { move( true ); }
+    .                 { /* error */ }
+}
+
+<MID_TYPE> {
+    {whitespace}+     { move( true ); }
+    ":"               { move( true ); BEGIN( SUBTYPE ); }
+    "]"               { move( true ); printf( "*/" ); yy_pop_state(); }
+    "\n"              { move( true ); }
     .                 { /* error */ }
 }
 
 <SUBTYPE> {
-    {whitespace}+     { move( false ); }
-    {identifier}      { move( false ); strncpy( current.type->subtype, yytext, STR_MAX); }
-    "]"               { move( false ); yy_pop_state(); }
-    "\n"              { move( false ); }
+    {whitespace}+     { move( true ); }
+    {identifier}      { move( true ); strncpy( current.type->subtype, yytext, STR_MAX); BEGIN( CLOSE_MOD ); }
+    "\n"              { move( true ); }
     .                 { /* error */ }
 }
 
 <COMPONENTS> {
-    {whitespace}+     { move( false ); }
+    {whitespace}+     { move( true ); }
     {identifier}      { printf( " " ); move( true ); add_component(); }
     '{char_sequence}' { printf( " " ); move( true ); add_component(); }
-    "["               { move( false ); BEGIN( MODIFIERS ); }
+    "["               { printf( "/*" ); move( true ); yy_push_state( MODIFIERS ); }
     "|"               { move( true ); /* TODO */ }
-    ";"               { move( true ); /* TODO */ }
+    ";"               { move( true ); /* TODO */ BEGIN( BODY ); }
     "{"               { move( false ); /* TODO */ }
     "/*"              { move( true ); yy_push_state( LINE_COMMENT ); }
     "//"              { move( true ); yy_push_state( COMMENT ); }
-    "\n"              { move( false ); }
+    "\n"              { move( true ); }
     .                 { /* error */ }
 }
 
 <MODIFIERS> {
-    {whitespace}+     { move( false ); }
-    {identifier}      { move( false ); /* TODO */ }
-    "+"               { move( false ); add_child(); }
-    "-"               { move( false ); /* TODO */ }
-    "<"{digit}*       { move( false ); add_option( PUSH_FRONT, yytext + 1 ); }
-    ">"{digit}*       { move( false ); add_option( PUSH_BACK, yytext + 1 ); }
-    "="               { move( false ); add_option( COPY, yytext + 1 ); }
-    {digit}+          { move( false ); add_option( ABSOLUTE, yytext ); }
-    "]"               { move( false ); BEGIN( COMPONENTS ); }
+    {whitespace}+     { move( true ); }
+    {identifier}      { move( true ); strncpy( current.type->type, yytext, STR_MAX); BEGIN( MID_TYPE ); }
+    ":"               { move( true ); BEGIN( SUBTYPE ); }
+    "+"               { move( true ); add_child(); BEGIN( CLOSE_MOD ); }
+    "-"               { move( true ); /* TODO (remember to maintain current.type) */ BEGIN( CLOSE_MOD ); }
+    "<"{digit}*       { move( true ); add_option( PUSH_FRONT, yytext + 1 ); BEGIN( CLOSE_MOD ); }
+    ">"{digit}*       { move( true ); add_option( PUSH_BACK, yytext + 1 ); BEGIN( CLOSE_MOD ); }
+    "="               { move( true ); add_option( COPY, yytext + 1 ); BEGIN( CLOSE_MOD ); }
+    {digit}+          { move( true ); add_option( ABSOLUTE, yytext ); BEGIN( CLOSE_MOD ); }
+    "\n"              { move( true ); }
+    .                 { /* error */ }
+}
+
+<CLOSE_MOD> {
+    {whitespace}+     { move( true ); }
+    "\n"              { move( true ); }
+    "]"               { move( true ); printf( "*/" ); yy_pop_state(); }
     .                 { /* error */ }
 }
 
@@ -266,9 +301,10 @@ static void add_child ( void ) {
         current.component->child->father = current.component;
     }
 
-    current.component->child->component.pos = current.component->pos;
-    current.node      = current.component->child;
-    current.component = &current.component->child->component;
+    current.node = current.component->child;
+    current.type = &current.node->type;
+    current.node->component.pos = current.component->pos;
+    current.component = &current.node->component;
 }
 
 
