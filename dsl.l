@@ -9,12 +9,13 @@
  * These go anywhere in the parser expression:
  *
  * [+] - Create a new node with the contents until the next [-].
- * [-] - End new node context
+ * [-] - End new node context.
  *
  * These go at the end of a parser expression:
  *
- * [identifier] - Set node type to 'identifier'
- * [:identifier] - Set node subtype to 'identifier'
+ * [identifier] - Set node type to 'identifier'.
+ * [:identifier] - Set node subtype to 'identifier'.
+ * [ident1:ident2] - Set node type and subtype.
  */
 
 %{

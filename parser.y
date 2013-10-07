@@ -1,9 +1,7 @@
 %{
 
-#define YYSTYPE struct tree_node*
-
 #include <stdlib.h>
-#include "tree_node.h"
+#include "ast.h"
 
 %}
 

@@ -200,8 +200,6 @@ struct ast_node* ast_get_child(struct ast_node *node, int pos) {
         node = node->next_sibling;
     }
 
-    if (node->node_type == NODE_NONE) return NULL;
-
     return node;
 }
 

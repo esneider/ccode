@@ -8,4 +8,4 @@ a.out
 a.out.*
 *.pdf
 test/mock/*
-
+.DS_Store
